@@ -702,25 +702,42 @@ const ProductCheckout: React.FC = () => {
               <Button
                 onClick={paymentMethod === "stripe" ? handleStripePayment : handlePurchase}
                 disabled={processing}
-                className="w-full font-bold py-6 rounded-xl shadow-lg transition-all"
+                className="w-full font-bold py-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
                 style={{
                   background: paymentMethod === "stripe"
                     ? "linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241))"
-                    : "linear-gradient(to right, var(--primary), var(--spiritual-purple))"
+                    : "linear-gradient(to right, var(--primary), var(--spiritual-purple))",
+                  opacity: processing ? 0.8 : 1
                 }}
                 size="lg"
               >
-                <div className="flex items-center justify-center gap-2">
-                  {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
-                  {paymentMethod === "stripe" ? (
-                    <>
-                      {!processing && <Zap className="w-5 h-5 text-yellow-300" />}
-                      <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Stripe ile Güvenli Öde`}</span>
-                    </>
-                  ) : (
-                    <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Öde ve Satın Al`}</span>
-                  )}
-                </div>
+                <div
+                  style={{
+                    visibility: processing ? "visible" : "hidden",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    borderTop: "2px solid white",
+                    borderRight: "2px solid white",
+                    borderBottom: "2px solid transparent",
+                    borderLeft: "2px solid transparent",
+                    animation: "spin 0.6s linear infinite"
+                  }}
+                />
+                {paymentMethod === "stripe" ? (
+                  <>
+                    {!processing && <Zap className="w-5 h-5 text-yellow-300" style={{ visibility: processing ? "hidden" : "visible" }} />}
+                    <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Stripe ile Güvenli Öde`}</span>
+                  </>
+                ) : (
+                  <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Öde ve Satın Al`}</span>
+                )}
+                <style>{`
+                  @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
