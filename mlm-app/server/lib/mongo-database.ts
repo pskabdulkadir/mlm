@@ -190,6 +190,36 @@ export const mongoDb = {
       const tempUserCount = await User.countDocuments();
       if (process.env.RUN_SEED === "true" || tempUserCount === 0) {
         await this.createSeedData();
+      } else {
+        // Always ensure test user exists even if DB is not empty
+        const testUser = await User.findOne({ email: "test@example.com" });
+        if (!testUser) {
+          await this.createUser({
+            fullName: "Test User",
+            email: "test@example.com",
+            password: await hashPassword("Test123456"),
+            phone: "+905551234567",
+            role: "user",
+            isActive: true,
+            memberId: "ak000002",
+            referralCode: "ak000002",
+            careerLevel: {
+              id: "1",
+              name: "Mülhime",
+              displayName: "Mülhime",
+              level: 1,
+            },
+            wallet: {
+              balance: 0,
+              totalEarnings: 0,
+              sponsorBonus: 0,
+              careerBonus: 0,
+              passiveIncome: 0,
+              leadershipBonus: 0,
+            },
+          });
+          console.log("✅ Test user created: test@example.com (ak000002)");
+        }
       }
 
       // Migrate legacy data if it exists
