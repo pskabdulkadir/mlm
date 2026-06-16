@@ -68,7 +68,7 @@ router.get("/onboarding-complete", async (req: Request, res: Response) => {
 });
 
 // 3. Create Checkout Session for Products
-router.post("/create-checkout-session", async (req: Request, res: Response) => {
+router.post("/create-checkout-session", verifyAccessToken, async (req: any, res: Response) => {
   try {
     const { productId, buyerEmail, metadata: extraMetadata } = req.body;
 
