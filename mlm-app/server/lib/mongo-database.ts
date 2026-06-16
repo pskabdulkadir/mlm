@@ -424,9 +424,10 @@ export const mongoDb = {
       { $set: { inStock: true } }
     ).catch(() => {});
 
-    // PRODUCT SEEDING — delete old products and create 6 fresh ones with YouTube links
-    const existingProductCount = await Product.countDocuments();
-    if (existingProductCount === 0 || !(await Product.findOne({ downloadUrl: /youtu\.be/ }))) {
+    // PRODUCT SEEDING — delete old products and create fresh ones with YouTube links
+    // Always reseed on startup for consistency
+    await Product.deleteMany({});
+    {
           const products = [
         {
           name: "Aylık Aktiflik Paketi",

@@ -21,6 +21,17 @@ async function startServer() {
     console.error("Failed to write status log:", e);
   }
 
+  // Setup Vite dev server FIRST for HMR to work
+  let viteMiddleware: any = null;
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    viteMiddleware = vite.middlewares;
+    app.use(viteMiddleware);
+  }
+
   // API routes from the backend
   const backendApp = await createBackendServer();
   try {
@@ -32,18 +43,17 @@ async function startServer() {
   }
   app.use(backendApp);
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
+  // Static files for production
+  if (process.env.NODE_ENV === "production") {
     const distPath = path.join(__dirname, "spa");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
+    });
+  } else {
+    // SPA fallback for dev mode
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "index.html"));
     });
   }
 

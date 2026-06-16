@@ -1,0 +1,5 @@
+NODE_ENV: production
+MONGODB_URI: not set
+DATABASE_URL: not set
+Starting backend server...
+Backend server created successfully. Mongoose connection readyState: 1
