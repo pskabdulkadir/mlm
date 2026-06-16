@@ -360,17 +360,47 @@ export const mongoDb = {
       // Ensure admin details are correct and active
       await User.updateOne(
         { email: "psikologabdulkadirkan@gmail.com" },
-        { 
-          $set: { 
-            role: "admin", 
-            isActive: true, 
-            memberId: "ak000001", 
+        {
+          $set: {
+            role: "admin",
+            isActive: true,
+            memberId: "ak000001",
             referralCode: "ak000001",
-            globalRank: 1 
-          } 
+            globalRank: 1
+          }
         }
       );
       console.log("ℹ️ Admin user already exists, details verified & ensured.");
+    }
+
+    // Create test user for development/testing
+    const testUser = await User.findOne({ email: "test@example.com" });
+    if (!testUser) {
+      await this.createUser({
+        fullName: "Test User",
+        email: "test@example.com",
+        password: await hashPassword("Test123456"),
+        phone: "+905551234567",
+        role: "user",
+        isActive: true,
+        memberId: "ak000002",
+        referralCode: "ak000002",
+        careerLevel: {
+          id: "1",
+          name: "Mülhime",
+          displayName: "Mülhime",
+          level: 1,
+        },
+        wallet: {
+          balance: 0,
+          totalEarnings: 0,
+          sponsorBonus: 0,
+          careerBonus: 0,
+          passiveIncome: 0,
+          leadershipBonus: 0,
+        },
+      });
+      console.log("✅ Test user created: test@example.com (ak000002)");
     }
 
     // See if Sultan seed users or other old ones are present; if so, clear everything and do a clean start

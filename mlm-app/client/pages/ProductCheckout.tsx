@@ -699,42 +699,29 @@ const ProductCheckout: React.FC = () => {
                 </div>
               </div>
 
-              {paymentMethod === "stripe" ? (
-                <Button
-                  onClick={handleStripePayment}
-                  disabled={processing}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                  size="lg"
-                >
-                  {processing ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      İşlem Yapılıyor...
-                    </div>
+              <Button
+                onClick={paymentMethod === "stripe" ? handleStripePayment : handlePurchase}
+                disabled={processing}
+                className="w-full font-bold py-6 rounded-xl shadow-lg transition-all"
+                style={{
+                  background: paymentMethod === "stripe"
+                    ? "linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241))"
+                    : "linear-gradient(to right, var(--primary), var(--spiritual-purple))"
+                }}
+                size="lg"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  {processing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
+                  {paymentMethod === "stripe" ? (
+                    <>
+                      {!processing && <Zap className="w-5 h-5 text-yellow-300" />}
+                      <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Stripe ile Güvenli Öde`}</span>
+                    </>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                       <Zap className="w-5 h-5 text-yellow-300" />
-                       <span>{totalAmount} $ Stripe ile Güvenli Öde</span>
-                    </div>
+                    <span>{processing ? "İşlem Yapılıyor..." : `${totalAmount} $ Öde ve Satın Al`}</span>
                   )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handlePurchase}
-                  disabled={processing}
-                  className="w-full bg-gradient-to-r from-primary to-spiritual-purple hover:opacity-90"
-                  size="lg"
-                >
-                  {processing ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      İşlem Yapılıyor...
-                    </div>
-                  ) : (
-                    `${totalAmount} $ Öde ve Satın Al`
-                  )}
-                </Button>
-              )}
+                </div>
+              </Button>
 
               <p className="text-xs text-muted-foreground text-center">
                 Siparişinizi tamamlayarak{" "}
