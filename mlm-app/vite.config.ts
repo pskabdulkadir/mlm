@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "0.0.0.0",
     port: 3000,
-    allowedHosts: true,
+    allowedHosts: ["akn-mipa.onrender.com", "localhost", "127.0.0.1"],
   },
   build: {
     outDir: "dist/spa",
