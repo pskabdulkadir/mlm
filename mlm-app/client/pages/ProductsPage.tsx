@@ -80,13 +80,6 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
-
-    // Auto-refresh products every 5 seconds for real-time updates
-    const refreshInterval = setInterval(() => {
-      loadProducts();
-    }, 5000);
-
-    return () => clearInterval(refreshInterval);
   }, []);
 
   useEffect(() => {
