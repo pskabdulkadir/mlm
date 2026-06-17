@@ -5,7 +5,12 @@ import { createServer as createBackendServer } from "./server/index.ts";
 
 async function startServer() {
   const app = express();
-  const PORT = parseInt(process.env.PORT || "3000", 10);
+  // Extract port from command line args or env
+  const portArg = process.argv.find(arg => arg.startsWith("--port"));
+  const defaultPort = process.env.NODE_ENV === "production" ? "3000" : "4000";
+  const PORT = portArg
+    ? parseInt(portArg.split("=")[1], 10)
+    : parseInt(process.env.PORT || defaultPort, 10);
 
   // Set default env vars if missing for the backend to function
   process.env.JWT_SECRET = process.env.JWT_SECRET || "default_dev_secret_123";

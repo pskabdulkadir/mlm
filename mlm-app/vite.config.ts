@@ -9,14 +9,14 @@ export default defineConfig(({ mode }) => ({
     host: "0.0.0.0",
     port: 3000,
     allowedHosts: true,
-    hmr: process.env.NODE_ENV === "production"
-      ? false
-      : {
-          protocol: "ws",
-          host: "localhost",
-          port: 3000,
-        },
-    middlewareMode: false,
+    // Proxy API requests to backend dev server
+    proxy: {
+      "/api": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        rewrite: (path) => path,
+      }
+    }
   },
   build: {
     outDir: "dist/spa",
