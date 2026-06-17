@@ -11,11 +11,25 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   // Extract port from command line args or env
-  const portArg = process.argv.find(arg => arg.startsWith("--port"));
   const defaultPort = process.env.NODE_ENV === "production" ? "3000" : "4000";
-  const PORT = portArg
-    ? parseInt(portArg.split("=")[1], 10)
-    : parseInt(process.env.PORT || defaultPort, 10);
+  let PORT = parseInt(process.env.PORT || defaultPort, 10);
+
+  // Check for --port argument (both --port=4000 and --port 4000 formats)
+  const portArgIndex = process.argv.indexOf("--port");
+  if (portArgIndex >= 0 && portArgIndex + 1 < process.argv.length) {
+    const portValue = parseInt(process.argv[portArgIndex + 1], 10);
+    if (!isNaN(portValue)) {
+      PORT = portValue;
+    }
+  }
+  // Also check for --port=value format
+  const portArg = process.argv.find(arg => arg.startsWith("--port="));
+  if (portArg) {
+    const portValue = parseInt(portArg.split("=")[1], 10);
+    if (!isNaN(portValue)) {
+      PORT = portValue;
+    }
+  }
 
   // Set default env vars if missing for the backend to function
   process.env.JWT_SECRET = process.env.JWT_SECRET || "default_dev_secret_123";
