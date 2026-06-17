@@ -647,8 +647,8 @@ export default function BatiniPanel() {
         </div>
 
         <Tabs defaultValue="secrets" value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-          <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md p-2 rounded-full border border-slate-200 shadow-xl max-w-3xl mx-auto">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 h-14 bg-transparent gap-2">
+          <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md p-2 rounded-full border border-slate-200 shadow-xl max-w-5xl mx-auto overflow-x-auto">
+            <TabsList className="grid grid-cols-2 md:grid-cols-5 h-14 bg-transparent gap-2 min-w-max">
               <TabsTrigger value="secrets" className="rounded-full font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all">
                 <Activity className="w-4 h-4 mr-2" />
                 Dinamik Sırlar
@@ -665,6 +665,10 @@ export default function BatiniPanel() {
                 <Settings className="w-4 h-4 mr-2" />
                 Teknikler
               </TabsTrigger>
+              <Link to="/quantum-healing" className="inline-flex items-center justify-center rounded-full font-black text-[10px] uppercase tracking-widest px-4 py-3 h-10 bg-gradient-to-r from-pink-600 to-purple-600 text-white hover:shadow-lg transition-all">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Quantum
+              </Link>
             </TabsList>
           </div>
 

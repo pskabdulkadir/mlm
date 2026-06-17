@@ -33,6 +33,7 @@ import Support from "./pages/Support";
 import BatiniPanel from "./pages/BatiniPanel";
 import TrainingPage from "./pages/TrainingPage";
 import ZahiriPanel from "./pages/ZahiriPanel";
+import QuantumHealingTherapy from "./pages/QuantumHealingTherapy";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,8 @@ const App = () => (
               <Route path="/kullanim" element={<TermsOfUse />} />
               <Route path="/destek" element={<Support />} />
               <Route path="/batini-panel" element={<BatiniPanel />} />
+              <Route path="/quantum-healing" element={<QuantumHealingTherapy />} />
+              <Route path="/quantum-therapy" element={<QuantumHealingTherapy />} />
               <Route path="/training" element={<TrainingPage />} />
               <Route path="/egitim" element={<TrainingPage />} />
               <Route path="*" element={<NotFound />} />
