@@ -804,9 +804,21 @@ export default function Register() {
                 <Button variant="outline" onClick={() => setStep(3)}>
                   Geri Dön
                 </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" disabled={loading} className="flex items-center justify-center gap-2">
+                  <Loader2
+                    className="w-4 h-4 mr-2"
+                    style={{
+                      visibility: loading ? "visible" : "hidden",
+                      animation: loading ? "spin 0.6s linear infinite" : "none"
+                    }}
+                  />
                   Kayıt Ol
+                  <style>{`
+                    @keyframes spin {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                  `}</style>
                 </Button>
               </CardFooter>
             </form>
@@ -908,9 +920,21 @@ export default function Register() {
                 <Button variant="outline" onClick={() => setStep(4)}>
                   Geri Dön
                 </Button>
-                <Button type="submit" disabled={loading || !receiptFile}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" disabled={loading || !receiptFile} className="flex items-center justify-center gap-2">
+                  <Loader2
+                    className="w-4 h-4 mr-2"
+                    style={{
+                      visibility: loading ? "visible" : "hidden",
+                      animation: loading ? "spin 0.6s linear infinite" : "none"
+                    }}
+                  />
                   Dekontu Yükle ve Tamamla
+                  <style>{`
+                    @keyframes spin {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                  `}</style>
                 </Button>
               </CardFooter>
             </form>

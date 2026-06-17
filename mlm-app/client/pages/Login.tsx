@@ -378,11 +378,21 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-4">
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                  <Button type="submit" className="w-full flex items-center justify-center gap-2" disabled={loading}>
+                    <Loader2
+                      className="w-4 h-4 mr-2"
+                      style={{
+                        visibility: loading ? "visible" : "hidden",
+                        animation: loading ? "spin 0.6s linear infinite" : "none"
+                      }}
+                    />
                     Giriş Yap
+                    <style>{`
+                      @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                      }
+                    `}</style>
                   </Button>
                   <div className="text-center text-sm">
                     <Dialog open={forgotPasswordOpen} onOpenChange={(open) => {
@@ -595,11 +605,21 @@ export default function Login() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-4">
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                  <Button type="submit" className="w-full flex items-center justify-center gap-2" disabled={loading}>
+                    <Loader2
+                      className="w-4 h-4 mr-2"
+                      style={{
+                        visibility: loading ? "visible" : "hidden",
+                        animation: loading ? "spin 0.6s linear infinite" : "none"
+                      }}
+                    />
                     Hesap Oluştur
+                    <style>{`
+                      @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                      }
+                    `}</style>
                   </Button>
                   <div className="text-center text-xs text-muted-foreground">
                     Kayıt olarak{" "}
