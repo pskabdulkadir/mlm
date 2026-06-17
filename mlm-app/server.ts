@@ -21,15 +21,24 @@ async function startServer() {
     console.error("Failed to write status log:", e);
   }
 
-  // Setup Vite dev server FIRST for HMR to work
+  // Setup Vite dev server ONLY in development
   let viteMiddleware: any = null;
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    viteMiddleware = vite.middlewares;
-    app.use(viteMiddleware);
+  const isDev = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+
+  if (isDev) {
+    try {
+      const vite = await createViteServer({
+        server: {
+          middlewareMode: true,
+          hmr: false // Disable HMR in middlewareMode
+        },
+        appType: "spa",
+      });
+      viteMiddleware = vite.middlewares;
+      app.use(viteMiddleware);
+    } catch (viteErr) {
+      console.warn("Vite dev server initialization skipped:", viteErr);
+    }
   }
 
   // API routes from the backend
@@ -43,19 +52,29 @@ async function startServer() {
   }
   app.use(backendApp);
 
-  // Static files for production
-  if (process.env.NODE_ENV === "production") {
-    const distPath = path.join(__dirname, "spa");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+  // Static files and SPA fallback
+  const distPath = path.join(__dirname, isDev ? "." : "spa");
+  const indexPath = path.join(distPath, "index.html");
+
+  // Serve static files with caching for production
+  if (!isDev) {
+    app.use(express.static(distPath, {
+      maxAge: "1h",
+      etag: false,
+    }));
   } else {
-    // SPA fallback for dev mode
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "index.html"));
-    });
+    app.use(express.static(distPath));
   }
+
+  // SPA fallback - serve index.html for all routes
+  app.get("*", (req, res) => {
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error("Failed to send index.html:", err);
+        res.status(404).send("Not found");
+      }
+    });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
