@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { QuantumHealingAI, type QuantumAnalysisResult } from "@/lib/quantum-healing-ai";
+import { DigitalTwin, HeatmapOverlay } from "@/lib/3d-digital-twin";
 import {
   Heart,
   Sparkles,
@@ -125,8 +126,12 @@ export default function QuantumHealingTherapy() {
   const [selectedHealing, setSelectedHealing] = useState<QuranHealing | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const threeDCanvasRef = useRef<HTMLCanvasElement>(null);
+  const heatmapCanvasRef = useRef<HTMLCanvasElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const aiRef = useRef<QuantumHealingAI | null>(null);
+  const digitalTwinRef = useRef<DigitalTwin | null>(null);
+  const heatmapRef = useRef<HeatmapOverlay | null>(null);
   const frameCountRef = useRef(0);
   const analysisIntervalRef = useRef<number | null>(null);
 
@@ -314,6 +319,38 @@ export default function QuantumHealingTherapy() {
     setHealingProgress(0);
   };
 
+  // Initialize 3D scene
+  const initiate3DScene = useCallback(() => {
+    if (!threeDCanvasRef.current) return;
+
+    if (!digitalTwinRef.current) {
+      digitalTwinRef.current = new DigitalTwin(threeDCanvasRef.current);
+      digitalTwinRef.current.startAnimation();
+    }
+
+    if (!heatmapRef.current && heatmapCanvasRef.current) {
+      heatmapRef.current = new HeatmapOverlay(heatmapCanvasRef.current);
+    }
+  }, []);
+
+  // Update 3D visualization
+  const update3DVisualization = useCallback(() => {
+    if (!analysisResult || !digitalTwinRef.current || !heatmapRef.current) return;
+
+    // Update chakra visualization
+    digitalTwinRef.current.updateChakras(analysisResult.chakras);
+    heatmapRef.current.draw(analysisResult.chakras);
+
+    // Render
+    digitalTwinRef.current.render();
+  }, [analysisResult]);
+
+  // Animate healing in 3D
+  const animate3DHealing = useCallback(async () => {
+    if (!digitalTwinRef.current) return;
+    await digitalTwinRef.current.animateHealing(5000);
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -321,8 +358,24 @@ export default function QuantumHealingTherapy() {
       if (aiRef.current) {
         aiRef.current.reset();
       }
+      if (digitalTwinRef.current) {
+        digitalTwinRef.current.dispose();
+        digitalTwinRef.current = null;
+      }
     };
   }, [stopScan]);
+
+  // Initialize 3D on tab change to analysis
+  useEffect(() => {
+    if (activeTab === "analysis") {
+      initiate3DScene();
+    }
+  }, [activeTab, initiate3DScene]);
+
+  // Update 3D visualization when analysis result changes
+  useEffect(() => {
+    update3DVisualization();
+  }, [analysisResult, update3DVisualization]);
 
   // Web Audio API: Frekans çal
   const playFrequency = (frequency: number, duration: number) => {
@@ -402,6 +455,91 @@ export default function QuantumHealingTherapy() {
 
           {/* TAB 1: ANALIZ PANELİ */}
           <TabsContent value="analysis" className="space-y-6">
+            {/* 3D Digital Twin Visualization */}
+            {analysisResult && (
+              <Card className="bg-slate-800/50 border-purple-500/30 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-purple-300">
+                    <Sparkles className="w-5 h-5" />
+                    3D Digital Twin - Chakra Haritası
+                  </CardTitle>
+                  <CardDescription className="text-purple-200/70">
+                    Gerçek zamanlı 3D vücut modeli ve enerji seviyelerinin görselleştirilmesi
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* 3D Scene */}
+                    <div className="lg:col-span-2 bg-slate-900 rounded-lg overflow-hidden border border-purple-500/30 h-96">
+                      <canvas
+                        ref={threeDCanvasRef}
+                        className="w-full h-full"
+                        style={{ display: "block" }}
+                      />
+                    </div>
+
+                    {/* Heatmap Overlay */}
+                    <div className="bg-slate-900 rounded-lg overflow-hidden border border-purple-500/30 h-96 flex flex-col">
+                      <div className="flex-1 relative bg-black/50">
+                        <canvas
+                          ref={heatmapCanvasRef}
+                          width={300}
+                          height={400}
+                          className="w-full h-full"
+                          style={{ display: "block" }}
+                        />
+                      </div>
+                      <div className="p-3 bg-slate-800 border-t border-purple-500/20 text-xs text-purple-200">
+                        <p className="font-semibold mb-2">Enerji Yoğunluk Haritası</p>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-green-500" />
+                            <span>Güçlü Enerji</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-orange-500" />
+                            <span>Orta Seviye</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-red-500" />
+                            <span>Blokajlı</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Detailed Chakra Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-purple-500/20">
+                    {analysisResult.chakras.map((chakra, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="p-3 bg-slate-800/50 rounded-lg border border-purple-500/20 hover:border-purple-500/50 transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-purple-200 font-semibold text-sm">{chakra.name}</p>
+                          <Badge className={`text-xs ${
+                            chakra.level > 70 ? "bg-green-600" :
+                            chakra.level > 40 ? "bg-orange-600" :
+                            "bg-red-600"
+                          }`}>
+                            {chakra.level}%
+                          </Badge>
+                        </div>
+                        <Progress value={chakra.level} className="h-1.5 mb-2" />
+                        <p className="text-xs text-purple-300/70">
+                          Frekans: {chakra.frequency} Hz
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="bg-slate-800/50 border-purple-500/30">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-300">
@@ -679,7 +817,10 @@ export default function QuantumHealingTherapy() {
 
                           {/* Başlat Düğmesi */}
                           <Button
-                            onClick={startHealing}
+                            onClick={async () => {
+                              await startHealing();
+                              await animate3DHealing();
+                            }}
                             disabled={isHealing}
                             className="w-full bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-700 hover:to-purple-700 text-white py-6 text-lg"
                           >
