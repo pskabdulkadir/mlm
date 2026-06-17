@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { QuantumHealingAI, type QuantumAnalysisResult } from "@/lib/quantum-healing-ai";
 import {
   Heart,
   Sparkles,
@@ -125,20 +126,146 @@ export default function QuantumHealingTherapy() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const aiRef = useRef<QuantumHealingAI | null>(null);
+  const frameCountRef = useRef(0);
+  const analysisIntervalRef = useRef<number | null>(null);
 
-  // Simülasyon: Kamera taraması başlat
+  // Kamera başlat ve AI analiz yapmaya başla
   const startScan = async () => {
     setIsScanning(true);
-    
-    // Tarama animasyonu (3 saniye)
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 150));
-      setHealingProgress(i);
+
+    try {
+      // Kamera erişimi iste
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user"
+        }
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      // AI engine'i başlat
+      if (!aiRef.current) {
+        aiRef.current = new QuantumHealingAI();
+      }
+
+      // Frame işlemesini başlat
+      processFrames();
+
+    } catch (error) {
+      console.error("Kamera erişimi hatası:", error);
+      alert("Kamera erişim izni gerekli. Lütfen izin verin.");
+      setIsScanning(false);
+
+      // Fallback: Simüle edilmiş sonuç
+      generateMockAnalysis();
+    }
+  };
+
+  // Video frame'lerini işle ve AI analiz yap
+  const processFrames = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas || !aiRef.current) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const processFrame = () => {
+      try {
+        // Video frame'ini canvas'a çiz
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Image data'yı al
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Her 10 frame'de bir AI analiz yap (CPU yükünü azaltmak için)
+        frameCountRef.current++;
+        if (frameCountRef.current % 10 === 0) {
+          const result = aiRef.current!.analyzeFrame(
+            imageData.data,
+            canvas.width,
+            canvas.height
+          );
+
+          // Progress bar
+          setHealingProgress(Math.min(100, frameCountRef.current / 3));
+
+          // 300 frame sonrası tarama tamamlan (10 saniye @30fps)
+          if (frameCountRef.current >= 300) {
+            stopScan();
+            generateAnalysisFromResult(result);
+            return;
+          }
+        }
+
+        // Sonraki frame'i işle
+        requestAnimationFrame(processFrame);
+      } catch (error) {
+        console.error("Frame işleme hatası:", error);
+      }
+    };
+
+    processFrame();
+  }, []);
+
+  // Kamera kapatma
+  const stopScan = useCallback(() => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
     }
 
-    // Simüle edilmiş analiz sonucu
+    if (analysisIntervalRef.current) {
+      clearInterval(analysisIntervalRef.current);
+    }
+  }, []);
+
+  // AI sonucundan AnalysisResult oluştur
+  const generateAnalysisFromResult = (result: QuantumAnalysisResult) => {
+    const auricColorMap: { [key: string]: string } = {
+      "Kırmızı (Enerji)": "Kırmızı",
+      "Turuncu (Yaratıcılık)": "Turuncu",
+      "Sarı (Özgüven)": "Sarı",
+      "Yeşil (Şifa)": "Yeşil",
+      "Mavi (Sakinlik)": "Mavi",
+      "İnigo (Sezgi)": "İnigo",
+      "Mor (Ruhsal)": "Mor",
+      "Gümüş (Denge)": "Gümüş",
+      "Beyaz (Temizlik)": "Beyaz",
+      "Siyah (Blokaj)": "Siyah",
+    };
+
+    const analysisResult: AnalysisResult = {
+      energyLevel: result.overallEnergyLevel,
+      blockages: result.blockages,
+      chakras: result.chakras.map(c => ({
+        name: c.name,
+        level: c.level,
+        color: `bg-slate-500` // Dinamik olacak
+      })),
+      auricColor: auricColorMap[result.auricAnalysis.dominantColor] || "Gümüş",
+      recommendations: result.recommendations.map(r =>
+        `${r.chakra}: ${r.surah} Suresi + ${r.frequency}Hz Frekansı`
+      )
+    };
+
+    setAnalysisResult(analysisResult);
+    setIsScanning(false);
+    setHealingProgress(0);
+  };
+
+  // Fallback simüle edilmiş analiz
+  const generateMockAnalysis = () => {
     const mockResult: AnalysisResult = {
-      energyLevel: Math.floor(Math.random() * 40) + 55, // 55-95
+      energyLevel: Math.floor(Math.random() * 40) + 55,
       blockages: ["Sakral Çakrası", "Üçüncü Göz"],
       chakras: CHAKRAS.map(c => ({
         ...c,
@@ -186,6 +313,16 @@ export default function QuantumHealingTherapy() {
     setIsHealing(false);
     setHealingProgress(0);
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopScan();
+      if (aiRef.current) {
+        aiRef.current.reset();
+      }
+    };
+  }, [stopScan]);
 
   // Web Audio API: Frekans çal
   const playFrequency = (frequency: number, duration: number) => {
@@ -278,21 +415,47 @@ export default function QuantumHealingTherapy() {
               <CardContent className="space-y-6">
                 {/* Kamera Görüntüsü Alanı */}
                 <div className="relative bg-slate-900 rounded-lg overflow-hidden border border-purple-500/50 h-80">
-                  <canvas
-                    ref={canvasRef}
-                    className="w-full h-full object-cover"
+                  {!isScanning ? (
+                    <canvas
+                      ref={canvasRef}
+                      width={640}
+                      height={480}
+                      className="w-full h-full object-cover hidden"
+                      style={{
+                        background: "rgba(30, 30, 60, 0.5)"
+                      }}
+                    />
+                  ) : null}
+
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className={`w-full h-full object-cover ${isScanning ? "block" : "hidden"}`}
                     style={{
-                      background: isScanning 
-                        ? `linear-gradient(45deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1))`
-                        : "rgba(30, 30, 60, 0.5)"
+                      transform: "scaleX(-1)" // Ayna görüntüsü
                     }}
                   />
+
+                  {!isScanning && (
+                    <div className="w-full h-full flex items-center justify-center text-purple-300/50">
+                      <div className="text-center">
+                        <Camera className="w-16 h-16 mx-auto mb-3 opacity-50" />
+                        <p>Kamera taraması başlamadı</p>
+                      </div>
+                    </div>
+                  )}
+
                   {isScanning && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="absolute inset-0 pointer-events-none border-2 border-purple-500/50">
+                      {/* Yüz bölgesi göstergesi */}
+                      <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 border-2 border-dashed border-purple-400 rounded-lg opacity-50" />
+
+                      {/* Tarama animasyonu */}
                       <motion.div
-                        animate={{ rotate: 360 }}
+                        animate={{ top: ["0%", "100%"] }}
                         transition={{ duration: 2, repeat: Infinity }}
-                        className="w-20 h-20 border-4 border-purple-500/30 border-t-purple-500 rounded-full"
+                        className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
                       />
                     </div>
                   )}
