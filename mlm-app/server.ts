@@ -30,14 +30,19 @@ async function startServer() {
       const vite = await createViteServer({
         server: {
           middlewareMode: true,
-          hmr: false // Disable HMR in middlewareMode
+          hmr: {
+            protocol: "ws",
+            host: "localhost",
+            port: 3000,
+          }
         },
         appType: "spa",
       });
       viteMiddleware = vite.middlewares;
       app.use(viteMiddleware);
+      console.log("✅ Vite dev server middleware initialized with HMR enabled");
     } catch (viteErr) {
-      console.warn("Vite dev server initialization skipped:", viteErr);
+      console.warn("⚠️ Vite dev server initialization skipped:", viteErr);
     }
   }
 

@@ -9,7 +9,14 @@ export default defineConfig(({ mode }) => ({
     host: "0.0.0.0",
     port: 3000,
     allowedHosts: true,
-    hmr: mode === "production" ? false : { host: "localhost", port: 3000 },
+    hmr: process.env.NODE_ENV === "production"
+      ? false
+      : {
+          protocol: "ws",
+          host: "localhost",
+          port: 3000,
+        },
+    middlewareMode: false,
   },
   build: {
     outDir: "dist/spa",
