@@ -102,6 +102,7 @@ import { ContributionCalculator } from "@/components/ContributionCalculator";
 import { UserGuideModal } from "@/components/UserGuideModal";
 import MemberBlueprintManager from "@/components/MemberBlueprintManager";
 import AIAssistant from "@/components/AIAssistant";
+import TimeBankEducationPanel from "@/components/TimeBankEducationPanel";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
