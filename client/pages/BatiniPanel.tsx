@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import QuantumHealingTherapy from "@/components/QuantumHealingTherapy";
+import AIAssistant from "@/components/AIAssistant";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1237,6 +1238,16 @@ export default function BatiniPanel() {
           </div>
         </div>
       </footer>
+
+      {/* AI Assistant Chatbot */}
+      <AIAssistant
+        panelType="batini"
+        context={{
+          panel: "batini",
+          content: "Ezoterik ve gizli bilgiler",
+        }}
+        position="bottom-right"
+      />
     </div>
   );
 }

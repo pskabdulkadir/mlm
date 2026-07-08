@@ -59,6 +59,7 @@ import MasterBlueprintManager from "@/components/MasterBlueprintManager";
 import ApiPlayground from "@/components/ApiPlayground";
 import DatabaseLedger from "@/components/DatabaseLedger";
 import SdkDocumentation from "@/components/SdkDocumentation";
+import AIAssistant from "@/components/AIAssistant";
 // Binary Network Tree removed - replaced with Monoline MLM system (Code comment - keep as is or update if needed, but safe to ignore for UI)
 import { motion, AnimatePresence } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
@@ -14827,6 +14828,18 @@ ${analysisData.topPerformers.map((u: any, i) => `${i + 1}. ${u.fullName} ($${(u.
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AI Assistant Chatbot */}
+      <AIAssistant
+        userId={userId}
+        panelType="admin"
+        context={{
+          role: "admin",
+          totalUsers: userStats?.totalUsers,
+          totalEarnings: userStats?.totalEarnings,
+        }}
+        position="bottom-right"
+      />
     </div>
   );
 }

@@ -52,6 +52,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { SystemPresentation } from "@/components/SystemPresentation";
+import AIAssistant from "@/components/AIAssistant";
 
 const BreathingExercise = () => {
   const [phase, setPhase] = useState<" Nefes Al" | " Tut" | " Nefes Ver" | "Bekle">(" Nefes Al");
@@ -964,6 +965,16 @@ export default function ZahiriPanel() {
           </div>
         </div>
       </footer>
+
+      {/* AI Assistant Chatbot */}
+      <AIAssistant
+        panelType="zahiri"
+        context={{
+          panel: "zahiri",
+          content: "Motivasyon ve psikoloji",
+        }}
+        position="bottom-right"
+      />
     </div>
   );
 }

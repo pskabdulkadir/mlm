@@ -70,6 +70,7 @@ import {
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { SystemPresentation } from "@/components/SystemPresentation";
+import AIAssistant from "@/components/AIAssistant";
 
 
 interface User {
@@ -3461,6 +3462,17 @@ Bu dosya kişisel takip amaçlıdır.
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AI Assistant Chatbot */}
+      <AIAssistant
+        userId={currentUser?.id}
+        panelType="manevi"
+        context={{
+          panel: "manevi",
+          content: "Manevi gelişim",
+        }}
+        position="bottom-right"
+      />
     </div >
   );
 }

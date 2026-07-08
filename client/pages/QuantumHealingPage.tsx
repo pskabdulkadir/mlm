@@ -20,6 +20,7 @@ import SolfeggioLibrary from '@/quantum/components/SolfeggioLibrary';
 import ManeviResonance from '@/quantum/components/ManeviResonance';
 import TherapyPanel from '@/quantum/components/TherapyPanel';
 import HistoryDashboard from '@/quantum/components/HistoryDashboard';
+import AIAssistant from '@/components/AIAssistant';
 import { AuricScanResult } from '@/quantum/types';
 
 export default function QuantumHealingPage() {
@@ -293,6 +294,16 @@ export default function QuantumHealingPage() {
           <span>MEDİKAL DESTEK TAVSİYESİ DEĞİLDİR • KADİM FREKANS GÜVENCESİ • TS-2026</span>
         </div>
       </footer>
+
+      {/* AI Assistant Chatbot */}
+      <AIAssistant
+        panelType="quantum"
+        context={{
+          panel: "quantum",
+          content: "Quantum healing ve terapi",
+        }}
+        position="bottom-right"
+      />
     </div>
   );
 }

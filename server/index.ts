@@ -24,6 +24,7 @@ import adminHeldEarningsRoutes from "./routes/admin-held-earnings";
 import adminEarningReportRoutes from "./routes/admin-earning-report";
 import adminFraudReportRoutes from "./routes/admin-fraud-report";
 import beyinEngineRoutes from "./routes/beyin-engine";
+import aiAssistantRoutes from "./routes/ai-assistant";
 // import testE2ERoutes from "./routes/test-e2e"; // REMOVED FOR PRODUCTION
 import { initDatabaseBackupScheduler } from "./lib/backup";
 import { monthlyResetJob } from "./lib/cron/monthly-reset";
@@ -383,6 +384,9 @@ export async function createServer() {
 
   // Stripe Payment & Connect routes
   app.use("/api/stripe", stripeRoutes);
+
+  // AI Assistant routes
+  app.use("/api/assistant", aiAssistantRoutes);
 
   // Otonom MLM Beyin Engine routes
   app.use("/api", beyinEngineRoutes);

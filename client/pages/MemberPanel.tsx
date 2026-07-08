@@ -101,6 +101,7 @@ import { SystemPresentation } from "@/components/SystemPresentation";
 import { ContributionCalculator } from "@/components/ContributionCalculator";
 import { UserGuideModal } from "@/components/UserGuideModal";
 import MemberBlueprintManager from "@/components/MemberBlueprintManager";
+import AIAssistant from "@/components/AIAssistant";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
@@ -5313,6 +5314,18 @@ Müslüman bir kadının en çok bilmesi gereken konulardan biri taharettir.
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* AI Assistant Chatbot */}
+        <AIAssistant
+          userId={user?.id}
+          panelType="member"
+          context={{
+            careerLevel: user?.careerLevel?.name,
+            totalTeamSize: user?.totalTeamSize,
+            wallet: user?.wallet?.balance,
+          }}
+          position="bottom-right"
+        />
       </div>
     </div>
   );
