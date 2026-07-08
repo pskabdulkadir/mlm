@@ -1419,10 +1419,11 @@ export const mongoDb = {
         };
       }
 
-      if (!data.image.startsWith('http')) {
+      // Image can be URL or base64 data
+      if (!data.image) {
         return {
           success: false,
-          error: "Ürün resmi geçerli bir URL olmalıdır (http ile başlamalı)",
+          error: "Ürün resmi/dosyası gereklidir",
         };
       }
 
@@ -1473,9 +1474,10 @@ export const mongoDb = {
         return { success: false, error: "Lütfen bir kategori seçin veya yeni kategori adı girin" };
       }
 
-      if (data.image && !data.image.startsWith('http')) {
-        return { success: false, error: "Ürün resmi geçerli bir URL olmalıdır (http ile başlamalı)" };
-      }
+      // Image can be URL or base64 data - no validation needed
+      // if (data.image && !data.image.startsWith('http')) {
+      //   return { success: false, error: "Ürün resmi geçerli bir URL olmalıdır (http ile başlamalı)" };
+      // }
 
       // Build update payload from allowed fields only
       const allowed = [

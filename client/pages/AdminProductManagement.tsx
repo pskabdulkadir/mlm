@@ -242,27 +242,39 @@ const AdminProductManagement: React.FC = () => {
         return;
       }
 
-      const productData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        image: formData.image.trim(),
-        category: category,
-        price: Number(formData.price),
-        originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
-        features: formData.features.split(",").map(f => f.trim()).filter(f => f),
-        inStock: formData.inStock,
-        isDigital: formData.isDigital,
-        downloadUrl: formData.downloadUrl,
-        autoIntegratePOS: true,
-      };
+      // FormData kullan - dosya upload için
+      const formDataObj = new FormData();
+      formDataObj.append("name", formData.name.trim());
+      formDataObj.append("description", formData.description.trim());
+      formDataObj.append("category", category);
+      formDataObj.append("price", String(Number(formData.price)));
+      if (formData.originalPrice) {
+        formDataObj.append("originalPrice", String(Number(formData.originalPrice)));
+      }
+      formDataObj.append("features", JSON.stringify(
+        formData.features.split(",").map(f => f.trim()).filter(f => f)
+      ));
+      formDataObj.append("inStock", String(formData.inStock));
+      formDataObj.append("isDigital", String(formData.isDigital));
+      if (formData.downloadUrl) {
+        formDataObj.append("downloadUrl", formData.downloadUrl);
+      }
+      formDataObj.append("autoIntegratePOS", "true");
 
-      console.log("📤 Sending product data to server:", productData);
+      // Dosya ekle
+      if (formData.imageFile) {
+        formDataObj.append("file", formData.imageFile);
+      } else if (formData.image && formData.image.startsWith("data:")) {
+        // Base64 resimleri Blob'a çevir
+        const response = await fetch(formData.image);
+        const blob = await response.blob();
+        formDataObj.append("file", blob, "image.png");
+      }
+
+      console.log("📤 Sending product data to server with file");
       const response = await fetch("/api/products/admin/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(productData),
+        body: formDataObj,
       });
 
       const data = await response.json();
@@ -612,21 +624,28 @@ const AdminProductManagement: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="image">Ürün Resmi *</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500 transition">
+                <Label htmlFor="image">Ürün Dosyası (Resim, PDF, Video, Word vb) *</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition">
                   <input
                     id="image"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.pdf,.mp4,.webm,.mov,.avi,.doc,.docx,.txt"
                     onChange={handleImageUpload}
                     className="hidden"
                   />
                   <label htmlFor="image" className="cursor-pointer block">
                     <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">
-                      Resim seçmek için tıklayın
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Dosya seçmek için tıklayın veya sürükleyin
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF</p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Desteklenenler: Resimler (PNG, JPG, GIF), PDF, Video (MP4, WebM, MOV), Word (.doc, .docx), Metin Dosyaları
+                    </p>
+                    {formData.imageFile && (
+                      <p className="text-xs text-green-600 mt-2 font-semibold">
+                        ✓ {formData.imageFile.name}
+                      </p>
+                    )}
                   </label>
                 </div>
               </div>

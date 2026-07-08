@@ -1,7 +1,32 @@
 import { Router, Request, Response } from "express";
+import multer from "multer";
 import { mongoDb } from "../lib/mongo-database";
 
 const router = Router();
+
+// Multer setup for file uploads (memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images, PDFs, videos, documents
+    const allowedMimes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} not allowed`));
+    }
+  },
+});
 
 // GET /api/products - Get all active products
 router.get("/", async (req: Request, res: Response) => {
@@ -37,10 +62,41 @@ router.get("/admin/products", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/products/admin/products - Admin create product
-router.post("/admin/products", async (req: Request, res: Response) => {
+// POST /api/products/admin/products - Admin create product (with file upload)
+router.post("/admin/products", upload.single("file"), async (req: Request, res: Response) => {
   try {
-    const result = await mongoDb.adminCreateProduct(req.body);
+    // FormData'dan gelen verileri parse et
+    let productData: any = {};
+
+    // Eğer FormData ise
+    if (req.body.name && typeof req.body === 'object') {
+      productData = req.body;
+    }
+
+    // JSON stringler'i parse et
+    if (typeof productData.features === 'string') {
+      try {
+        productData.features = JSON.parse(productData.features);
+      } catch (e) {
+        productData.features = productData.features.split(',').map((f: string) => f.trim());
+      }
+    }
+
+    // Boolean stringler'i dönüştür
+    if (typeof productData.inStock === 'string') {
+      productData.inStock = productData.inStock === 'true';
+    }
+    if (typeof productData.isDigital === 'string') {
+      productData.isDigital = productData.isDigital === 'true';
+    }
+
+    // Dosya varsa - base64'e çevir
+    if ((req as any).file) {
+      const file = (req as any).file;
+      productData.image = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    }
+
+    const result = await mongoDb.adminCreateProduct(productData);
     return res.json(result);
   } catch (error: any) {
     console.error("Error in POST /admin/products:", error);
