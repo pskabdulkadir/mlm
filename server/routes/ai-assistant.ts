@@ -35,6 +35,56 @@ Tüm cevapları:
 - Hep Türkçe cevap ver
 - Emojiler kullanabilirsin ama abartma`;
 
+// Normalize Türkçe karakterler
+function normalizeTurkish(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ç/g, "c")
+    .replace(/ğ/g, "g")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ş/g, "s")
+    .replace(/ü/g, "u")
+    .trim();
+}
+
+// Fuzzy matching - benzer kelimeler bulma
+function levenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+// Kelime benzerliği yüzdesi
+function stringSimilarity(a: string, b: string): number {
+  const maxLen = Math.max(a.length, b.length);
+  if (maxLen === 0) return 1;
+  const distance = levenshteinDistance(a, b);
+  return 1 - distance / maxLen;
+}
+
 // Completely free AI responses - no API keys needed!
 // Uses intelligent pattern matching with built-in knowledge base
 async function getChatResponse(
@@ -43,11 +93,12 @@ async function getChatResponse(
   _context: Record<string, any> = {}
 ): Promise<string> {
   try {
-    const lowerMessage = message.toLowerCase().trim();
+    const normalizedMessage = normalizeTurkish(message);
+    const messageWords = normalizedMessage.split(/\s+/).filter(w => w.length > 2);
 
-    // Knowledge base - Türkçe MLM bilgileri
+    // Knowledge base - Türkçe MLM bilgileri (geniş anahtar kelime seti)
     const responses: Record<string, string> = {
-      "para|kazanç|gelir|earnings": `💰 **Para Kazanma Yolları**
+      "para|kazanc|para cek|cekim|gelir|earnings|dolar|tl|tl|usd|eur": `💰 **Para Kazanma Yolları**
 
 Akn Group'ta para kazanmanın 4 ana yolu var:
 
@@ -73,7 +124,7 @@ Akn Group'ta para kazanmanın 4 ana yolu var:
 
 💡 **İpucu**: Tüm 4 sistemi birleştirerek maksimum kazanın!`,
 
-      "komisyon|system|sistem": `📊 **Komisyon Sistemi Detaylı**
+      "komisyon|komision|system|sistem|odul|bonus|odeme|payment": `📊 **Komisyon Sistemi Detaylı**
 
 **Monoline Bonusu:**
 • Doğrudan davetinizden aldığınız
@@ -101,7 +152,7 @@ Akn Group'ta para kazanmanın 4 ana yolu var:
 3. Cüzdana otomatik aktar
 4. İstedikten sonra çek`,
 
-      "takım|referral|davet|network": `👥 **Takım Kurma Rehberi**
+      "takim|referral|davet|network|invite|insanlar|kisi|uye|member": `👥 **Takım Kurma Rehberi**
 
 **Başlangıç (Adım Adım):**
 
@@ -131,7 +182,7 @@ Akn Group'ta para kazanmanın 4 ana yolu var:
 ✓ Başarı hikayeleri paylaş
 ✓ Düzenli güncellemeler gönder`,
 
-      "ürün|clone|satış|product": `🛒 **Ürün Satışı & Clone Page**
+      "urun|clone|satis|product|magaza|shop|muz|mal|hizmet": `🛒 **Ürün Satışı & Clone Page**
 
 **Clone Page Nedir?**
 • Kendi kişisel mağazanız
@@ -162,7 +213,7 @@ Akn Group'ta para kazanmanın 4 ana yolu var:
 • İlk müşteriye indirim yap
 • Kalite-fiyat dengesi`,
 
-      "cüzdan|wallet|para çek|çekme|withdraw": `💳 **E-Cüzdan ve Para Çekme**
+      "cuzdan|wallet|para cek|cekme|withdraw|bakiye|balance|hesap": `💳 **E-Cüzdan ve Para Çekme**
 
 **Cüzdan Bakiyesi Görme:**
 1. Member Panel açı
@@ -188,7 +239,7 @@ Akn Group'ta para kazanmanın 4 ana yolu var:
 ✓ Oturumlarını kontrol et
 ✓ şüpheli işlemi bildir`,
 
-      "training|eğitim|öğren|course": `🎓 **Training ve Eğitim Programları**
+      "training|egitim|ogret|course|kurs|video|ders|seminer|webinar": `🎓 **Training ve Eğitim Programları**
 
 **Training Sayfası:**
 1. Member Panel → Training
@@ -460,10 +511,73 @@ Sorularınız hakkında yardımcı olmak için buradayım. Aşağıdaki konulard
 support@akngroup.com'a yaz!`,
     };
 
-    // Find matching response based on keywords
+    // Advanced matching: çok yönlü anahtar kelime ve benzerlik araması
+    const matches: Array<{ keywords: string; response: string; score: number }> = [];
+
     for (const [keywords, response] of Object.entries(responses)) {
+      if (keywords === "default") continue;
+
+      const keywordList = keywords.split("|").map(k => k.trim());
+      let bestScore = 0;
+
+      // 1. Tam eşleşme kontrol et
+      for (const keyword of keywordList) {
+        if (normalizedMessage.includes(keyword)) {
+          bestScore = Math.max(bestScore, 1.0);
+        }
+      }
+
+      // 2. Fuzzy matching - kelime benzerliği
+      if (bestScore < 1.0) {
+        for (const keyword of keywordList) {
+          for (const word of messageWords) {
+            const similarity = stringSimilarity(keyword, word);
+            if (similarity > 0.6) {
+              bestScore = Math.max(bestScore, similarity * 0.8);
+            }
+          }
+        }
+      }
+
+      // 3. Partial matching - anahtar kelime kombinasyonu
+      if (bestScore < 0.8) {
+        const keywordCount = keywordList.filter(kw =>
+          messageWords.some(w => stringSimilarity(kw, w) > 0.7)
+        ).length;
+        if (keywordCount > 0) {
+          bestScore = Math.max(bestScore, (keywordCount / keywordList.length) * 0.7);
+        }
+      }
+
+      if (bestScore > 0.4) {
+        matches.push({ keywords, response, score: bestScore });
+      }
+    }
+
+    // En yüksek puan alan cevabı döndür
+    if (matches.length > 0) {
+      matches.sort((a, b) => b.score - a.score);
+      return matches[0].response;
+    }
+
+    // Hiçbir eşleşme yoksa, kelimeleri analiz et ve benzer cevap ara
+    for (const [keywords, response] of Object.entries(responses)) {
+      if (keywords === "default") continue;
+
       const keywordList = keywords.split("|");
-      if (keywordList.some(keyword => lowerMessage.includes(keyword))) {
+      let hasMatch = false;
+
+      for (const keyword of keywordList) {
+        for (const word of messageWords) {
+          if (word.length > 2 && stringSimilarity(keyword, word) > 0.5) {
+            hasMatch = true;
+            break;
+          }
+        }
+        if (hasMatch) break;
+      }
+
+      if (hasMatch) {
         return response;
       }
     }
