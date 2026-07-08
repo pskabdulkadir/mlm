@@ -62,6 +62,7 @@ interface EducationRequest {
   mentorId?: string;
   zoomLink?: string;
   startTime?: Date;
+  participants?: Array<{ userId: string; userName: string; joinedAt: Date }>;
 }
 
 interface TimeBankEducationPanelProps {
@@ -74,7 +75,8 @@ export default function TimeBankEducationPanel({
   onCreditsUpdate,
 }: TimeBankEducationPanelProps) {
   const { toast } = useToast();
-  const [timeCredits, setTimeCredits] = useState(user?.timeCredits || 1);
+  const [timeCredits, setTimeCredits] = useState(user?.blueprintSettings?.timeCredits || user?.timeCredits || 1);
+  const [walletBalance, setWalletBalance] = useState(user?.wallet?.balance || 0);
   const [mentors, setMentors] = useState<Mentor[]>([
     {
       id: "mentor-1",
@@ -105,19 +107,48 @@ export default function TimeBankEducationPanel({
     },
   ]);
 
-  const [educationRequests, setEducationRequests] = useState<EducationRequest[]>(
-    []
-  );
+  const [educationRequests, setEducationRequests] = useState<EducationRequest[]>([]);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+  const [selectedEducationRequest, setSelectedEducationRequest] = useState<EducationRequest | null>(null);
   const [showReservation, setShowReservation] = useState(false);
   const [showEducationRequests, setShowEducationRequests] = useState(false);
   const [showOfferEducation, setShowOfferEducation] = useState(false);
   const [showLiveSession, setShowLiveSession] = useState(false);
+  const [sessionParticipants, setSessionParticipants] = useState<any[]>([]);
+  const [offerTopic, setOfferTopic] = useState("");
+  const [offerDescription, setOfferDescription] = useState("");
+
+  // Load user's time credits
+  useEffect(() => {
+    const loadUserCredits = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const res = await fetch("/api/timebank/credits", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTimeCredits(data.timeCredits || 0);
+        }
+      } catch (error) {
+        console.error("Failed to load time credits:", error);
+      }
+    };
+
+    loadUserCredits();
+  }, []);
 
   // Eğitim talep edenleri göster
   const loadEducationRequests = async () => {
     try {
-      const res = await fetch(`/api/timebank/requests?status=pending`);
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      const res = await fetch(`/api/timebank/requests?status=pending`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         setEducationRequests(data.requests || []);
@@ -145,11 +176,14 @@ export default function TimeBankEducationPanel({
     }
 
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/timebank/reserve-session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
-          userId: user?.id,
           mentorId: mentor.id,
           mentorName: mentor.name,
           topic: mentor.topic,
@@ -162,9 +196,16 @@ export default function TimeBankEducationPanel({
         setTimeCredits((prev) => prev - mentor.cost);
         if (onCreditsUpdate) onCreditsUpdate(timeCredits - mentor.cost);
         setShowReservation(false);
+        setSelectedMentor(null);
         toast({
           title: "Seansa Kabul Edildi",
           description: `${mentor.name} ile seans rezerve edildi. Zoom link'i e-mail adresinize gönderilecektir.`,
+        });
+      } else {
+        toast({
+          title: "Hata",
+          description: data.error || "Seansa katılırken hata oluştu.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -179,21 +220,24 @@ export default function TimeBankEducationPanel({
   // Eğitim talebi kabul et ve canlı oturumu başlat
   const handleAcceptEducationRequest = async (request: EducationRequest) => {
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/timebank/accept-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           requestId: request.id,
-          mentorId: user?.id,
-          mentorName: user?.fullName,
-          zoomLink: `https://zoom.us/j/${Math.random()
-            .toString(36)
-            .substring(7)}`,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
+        setSelectedEducationRequest(request);
+        setSessionParticipants([
+          { userId: request.requesterId, userName: request.requesterName, joinedAt: new Date() }
+        ]);
         setShowLiveSession(true);
         toast({
           title: "Eğitim Başladı",
@@ -209,29 +253,40 @@ export default function TimeBankEducationPanel({
     }
   };
 
-  // Eğitim tamamlandı - Kredi transfer et
+  // Eğitim tamamlandı - Para transferi yapılsın
   const handleCompleteEducation = async (request: EducationRequest) => {
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/timebank/complete-education", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           requestId: request.id,
-          mentorId: user?.id,
           requesterId: request.requesterId,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setTimeCredits((prev) => prev + 1); // Eğitim veren +1 kredi alır
+        // Mentor +1 kredi ve +$5 almaktadır
+        setTimeCredits((prev) => prev + 1);
+        setWalletBalance((prev) => prev + 5);
         if (onCreditsUpdate) onCreditsUpdate(timeCredits + 1);
         setShowLiveSession(false);
         toast({
           title: "Eğitim Tamamlandı",
-          description: "1 Zaman Kredisi hesabınıza eklendi.",
+          description: "1 Zaman Kredisi ve $5 cüzdanınıza eklendi.",
         });
-        loadEducationRequests(); // Listeyi yenile
+        loadEducationRequests();
+      } else {
+        toast({
+          title: "Hata",
+          description: data.error || "Eğitim tamamlanırken hata oluştu.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
@@ -327,62 +382,184 @@ export default function TimeBankEducationPanel({
         </CardContent>
       </Card>
 
-      {/* Eğitim Talepleri */}
+      {/* Eğitim Talepleri (Mentor Görünümü) ve Eğitim Sunumları (Student Görünümü) */}
       <Dialog open={showEducationRequests} onOpenChange={setShowEducationRequests}>
         <DialogContent className="max-w-2xl bg-slate-950 border-slate-800">
           <DialogHeader>
-            <DialogTitle className="text-white">Eğitim Talepleri</DialogTitle>
+            <DialogTitle className="text-white">Eğitim Seansları</DialogTitle>
             <DialogDescription className="text-slate-400">
-              Sisteme eğitim sunmak isteyen üyeler. +1 Zaman Kredisi kazanın.
+              Eğitim talep edenlere mentorluk yaparak +1 Zaman Kredisi ve $5 kazanın, veya eğitime katılarak bilgi alın.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 max-h-[400px] overflow-y-auto">
-            {educationRequests.length > 0 ? (
-              educationRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="bg-slate-900 border border-slate-800 p-4 rounded-lg"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-bold text-white">
-                        {request.requesterName}
-                      </h4>
-                      <p className="text-xs text-slate-400">
-                        {request.level}
-                      </p>
+          <Tabs defaultValue="mentor" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-slate-900">
+              <TabsTrigger value="mentor">🎤 Eğitim Sunma</TabsTrigger>
+              <TabsTrigger value="student">📚 Talep Oluştur</TabsTrigger>
+              <TabsTrigger value="available">✅ Katılabileceğim</TabsTrigger>
+            </TabsList>
+
+            {/* Mentor Tab - Eğitim Talepleri */}
+            <TabsContent value="mentor" className="space-y-4">
+              {educationRequests.length > 0 ? (
+                educationRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-purple-600/50 transition"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-bold text-white">
+                          {request.requesterName}
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          {request.level}
+                        </p>
+                      </div>
+                      <Badge className="bg-blue-500/20 text-blue-300">
+                        {request.status === "pending" ? "Bekleniyor" : request.status}
+                      </Badge>
                     </div>
-                    <Badge className="bg-blue-500/20 text-blue-300">
-                      {request.status === "pending" ? "Bekleniyor" : request.status}
-                    </Badge>
+
+                    <p className="text-sm text-purple-300 font-semibold mb-2">
+                      Konu: {request.topic}
+                    </p>
+                    <p className="text-sm text-slate-300 mb-4">
+                      {request.description}
+                    </p>
+
+                    <div className="flex items-center gap-2 mb-4 p-2 bg-slate-950 rounded text-xs text-slate-400">
+                      <Zap className="w-4 h-4 text-purple-400" />
+                      Kazanç: 1 Zaman Kredisi + $5 USD
+                    </div>
+
+                    {request.status === "pending" && (
+                      <Button
+                        onClick={() => handleAcceptEducationRequest(request)}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        Eğitimi Başlat (Zoom)
+                      </Button>
+                    )}
+                    {request.status === "in_progress" && (
+                      <div className="w-full p-2 bg-emerald-500/20 text-emerald-300 rounded text-sm text-center">
+                        Eğitim Devam Ediyor...
+                      </div>
+                    )}
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                  <p className="text-slate-400">Şu an eğitim talebi yok</p>
+                </div>
+              )}
+            </TabsContent>
 
-                  <p className="text-sm text-purple-300 font-semibold mb-2">
-                    Konu: {request.topic}
-                  </p>
-                  <p className="text-sm text-slate-300 mb-4">
-                    {request.description}
-                  </p>
+            {/* Student Tab - Eğitim Talebi Oluştur */}
+            <TabsContent value="student" className="space-y-4">
+              <div className="bg-slate-900 border border-emerald-600/30 p-4 rounded-lg">
+                <p className="text-sm text-emerald-300 mb-3">
+                  💡 Diğer üyelerin sunduğu eğitime katılabilirsiniz. Eğitim alındıktan sonra cüzdanınızdan $5 ödeme yapılacaktır.
+                </p>
+                <Button
+                  onClick={() => setShowOfferEducation(true)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
+                  + Eğitim Talebi Oluştur
+                </Button>
+              </div>
+            </TabsContent>
 
-                  {request.status === "pending" && (
+            {/* Available Tab - Katılabileceğim Eğitimler */}
+            <TabsContent value="available" className="space-y-4">
+              {educationRequests.filter(r => r.status === "in_progress").length > 0 ? (
+                educationRequests.filter(r => r.status === "in_progress").map((request) => (
+                  <div
+                    key={request.id}
+                    className="bg-slate-900 border border-emerald-600/30 p-4 rounded-lg hover:border-emerald-600 transition"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-bold text-white">
+                          {request.requesterName} tarafından veriliyor
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          {request.level}
+                        </p>
+                      </div>
+                      <Badge className="bg-emerald-500/20 text-emerald-300">
+                        Aktif
+                      </Badge>
+                    </div>
+
+                    <p className="text-sm text-purple-300 font-semibold mb-2">
+                      Konu: {request.topic}
+                    </p>
+                    <p className="text-sm text-slate-300 mb-4">
+                      {request.description}
+                    </p>
+
+                    <div className="flex items-center gap-2 mb-4 p-2 bg-slate-950 rounded text-xs text-slate-400">
+                      <Zap className="w-4 h-4 text-purple-400" />
+                      Tutar: $5 USD
+                    </div>
+
                     <Button
-                      onClick={() => handleAcceptEducationRequest(request)}
+                      onClick={async () => {
+                        // Check wallet balance
+                        if (walletBalance < 5) {
+                          toast({
+                            title: "Yetersiz Bakiye",
+                            description: `Cüzdanızda yeterli bakiye yok. Gerekli: $5, Mevcut: $${walletBalance}`,
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        // Join session
+                        try {
+                          const token = localStorage.getItem("accessToken");
+                          const res = await fetch("/api/timebank/join-session", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "Authorization": `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ requestId: request.id }),
+                          });
+
+                          const data = await res.json();
+                          if (data.success) {
+                            toast({
+                              title: "Eğitime Katıldınız",
+                              description: `Zoom linki: ${data.zoomLink}`,
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Hata",
+                            description: "Eğitime katılırken hata oluştu.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
                       className="w-full bg-emerald-600 hover:bg-emerald-700"
                     >
                       <Video className="w-4 h-4 mr-2" />
-                      Eğitimi Başlat (Zoom)
+                      Eğitime Katıl
                     </Button>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                  <p className="text-slate-400">Şu an katılabileceğiniz aktif eğitim yok</p>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-400">Şu an eğitim talebi yok</p>
-              </div>
-            )}
-          </div>
+              )}
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button
@@ -403,7 +580,7 @@ export default function TimeBankEducationPanel({
               🎤 Sisteme 1 Saatlik Eğitim Sun
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Siz de bir saat eğitim sunarak +1 Zaman Kredisi kazanın
+              Siz de bir saat eğitim sunarak +1 Zaman Kredisi ve $5 kazanın
             </DialogDescription>
           </DialogHeader>
 
@@ -412,6 +589,8 @@ export default function TimeBankEducationPanel({
               <Label className="text-slate-300">Eğitim Konusu</Label>
               <Input
                 placeholder="Örn: Monoline Satış Stratejileri"
+                value={offerTopic}
+                onChange={(e) => setOfferTopic(e.target.value)}
                 className="bg-slate-900 border-slate-800 text-white"
               />
             </div>
@@ -420,23 +599,57 @@ export default function TimeBankEducationPanel({
               <Label className="text-slate-300">Detaylı Açıklama</Label>
               <Textarea
                 placeholder="Bu eğitimde neler öğrenilecek?"
+                value={offerDescription}
+                onChange={(e) => setOfferDescription(e.target.value)}
                 className="bg-slate-900 border-slate-800 text-white"
-              />
-            </div>
-
-            <div>
-              <Label className="text-slate-300">Uygun Saatler</Label>
-              <Input
-                type="datetime-local"
-                className="bg-slate-900 border-slate-800 text-white"
+                rows={3}
               />
             </div>
 
             <Button
-              onClick={() => {
-                setShowOfferEducation(false);
-                setShowEducationRequests(true);
-                loadEducationRequests();
+              onClick={async () => {
+                if (!offerTopic || !offerDescription) {
+                  toast({
+                    title: "Eksik Bilgi",
+                    description: "Lütfen tüm alanları doldurunuz.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                try {
+                  const token = localStorage.getItem("accessToken");
+                  const res = await fetch("/api/timebank/requests/create", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      topic: offerTopic,
+                      description: offerDescription,
+                      level: user?.careerLevel?.displayName,
+                    }),
+                  });
+
+                  const data = await res.json();
+                  if (data.success) {
+                    setOfferTopic("");
+                    setOfferDescription("");
+                    setShowOfferEducation(false);
+                    toast({
+                      title: "Eğitim Talebi Oluşturuldu",
+                      description: "Eğitim talebiniz sisteme eklenmiştir. Eğitim talep edenleri bekliyorsunuz.",
+                    });
+                    loadEducationRequests();
+                  }
+                } catch (error) {
+                  toast({
+                    title: "Hata",
+                    description: "Eğitim talebi oluşturulamadı.",
+                    variant: "destructive",
+                  });
+                }
               }}
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
@@ -452,7 +665,7 @@ export default function TimeBankEducationPanel({
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Video className="w-5 h-5 text-red-500 animate-pulse" />
-              Canlı Eğitim Oturumu
+              Canlı Eğitim Oturumu: {selectedEducationRequest?.topic}
             </DialogTitle>
           </DialogHeader>
 
@@ -468,16 +681,38 @@ export default function TimeBankEducationPanel({
               </div>
             </div>
 
+            {/* Katılımcılar */}
+            <div className="bg-slate-900 p-4 rounded-lg border border-slate-800">
+              <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4 text-purple-400" />
+                Eğitime Katılan Üyeler ({sessionParticipants.length})
+              </h4>
+              <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                {sessionParticipants.length > 0 ? (
+                  sessionParticipants.map((participant) => (
+                    <div key={participant.userId} className="flex items-center justify-between bg-slate-950 p-2 rounded">
+                      <div>
+                        <p className="text-sm text-white font-medium">{participant.userName}</p>
+                        <p className="text-xs text-slate-400">ID: {participant.userId}</p>
+                      </div>
+                      <Badge className="bg-emerald-500/20 text-emerald-300">Katılıyor</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-slate-400 text-sm">Henüz katılımcı yok</p>
+                )}
+              </div>
+            </div>
+
+            {/* Ödeme Bilgisi */}
             <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 space-y-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-slate-400" />
                 <span className="text-slate-300">Seans Süresi: 1 Saat</span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-300">
-                  Katılımcı: Eğitim Alan Üye
-                </span>
+                <Zap className="w-4 h-4 text-purple-400" />
+                <span className="text-slate-300">Kazanç: 1 Zaman Kredisi + $5 USD</span>
               </div>
             </div>
 
@@ -487,11 +722,11 @@ export default function TimeBankEducationPanel({
                 Sohbet
               </Button>
               <Button
-                onClick={() => handleCompleteEducation(educationRequests[0])}
+                onClick={() => selectedEducationRequest && handleCompleteEducation(selectedEducationRequest)}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                Eğitim Tamamlandı (+1 Kredi)
+                Eğitim Tamamlandı
               </Button>
             </div>
           </div>

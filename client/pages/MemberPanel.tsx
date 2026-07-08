@@ -129,9 +129,16 @@ interface User {
   };
   careerLevel: {
     name: string;
+    displayName?: string;
     commissionRate: number;
     requirements?: any;
     order?: number;
+  };
+  blueprintSettings?: {
+    timeCredits: number;
+    donationRate?: number;
+    refusalsCount?: number;
+    refusalTitle?: string;
   };
   registrationDate: string;
   leftChild?: string;
@@ -2041,6 +2048,9 @@ export default function MemberPanel() {
               </TabsTrigger>
               <TabsTrigger value="blueprint" className="px-4 py-2 whitespace-nowrap text-purple-700 font-bold bg-purple-50 hover:bg-purple-100 border border-purple-200">
                 🔮 Master Blueprint
+              </TabsTrigger>
+              <TabsTrigger value="timebank" className="px-4 py-2 whitespace-nowrap text-amber-700 font-bold bg-amber-50 hover:bg-amber-100 border border-amber-200">
+                ⏰ Zaman Bankası
               </TabsTrigger>
             </TabsList>
           </div>
@@ -4326,6 +4336,12 @@ export default function MemberPanel() {
 
           <TabsContent value="blueprint" className="space-y-6">
             <MemberBlueprintManager user={user} onRefreshUser={() => fetchUserData(user.id)} />
+          </TabsContent>
+
+          <TabsContent value="timebank" className="space-y-6">
+            <TimeBankEducationPanel user={user} onCreditsUpdate={(credits) => {
+              setUser({ ...user, blueprintSettings: { ...user.blueprintSettings, timeCredits: credits } });
+            }} />
           </TabsContent>
 
           <TabsContent value="zahiri" className="space-y-6">

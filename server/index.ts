@@ -26,6 +26,7 @@ import adminEarningReportRoutes from "./routes/admin-earning-report";
 import adminFraudReportRoutes from "./routes/admin-fraud-report";
 import beyinEngineRoutes from "./routes/beyin-engine";
 import aiAssistantRoutes from "./routes/ai-assistant";
+import timebankRoutes from "./routes/timebank";
 // import testE2ERoutes from "./routes/test-e2e"; // REMOVED FOR PRODUCTION
 import { initDatabaseBackupScheduler } from "./lib/backup";
 import { monthlyResetJob } from "./lib/cron/monthly-reset";
@@ -388,6 +389,9 @@ export async function createServer() {
 
   // AI Assistant routes
   app.use("/api/assistant", aiAssistantRoutes);
+
+  // Time Bank Education routes
+  app.use("/api/timebank", timebankRoutes);
 
   // Otonom MLM Beyin Engine routes
   app.use("/api", beyinEngineRoutes);
