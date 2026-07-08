@@ -36,6 +36,7 @@ import BatiniPanel from "./pages/BatiniPanel";
 import TrainingPage from "./pages/TrainingPage";
 import ZahiriPanel from "./pages/ZahiriPanel";
 import QuantumHealingPage from "./pages/QuantumHealingPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 import { SystemUpdateGuard } from "@/components/SystemUpdateGuard";
 
@@ -71,7 +72,8 @@ const App = () => (
                 <Route path="/clone/:slug" element={<ClonePage />} />
                 <Route path="/clone-products/:memberId" element={<CloneProductPage />} />
                 <Route path="/clone-customers" element={<CloneCustomerTracking />} />
-                <Route path="/checkout" element={<ProductCheckout />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/checkout-old" element={<ProductCheckout />} />
                 <Route path="/checkout-simulation" element={<ProductCheckoutSimulation />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/bank-demo" element={<BankAccountDemo />} />
