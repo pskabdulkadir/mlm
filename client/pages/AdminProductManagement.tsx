@@ -76,6 +76,9 @@ const AdminProductManagement: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [categories, setCategories] = useState<string[]>([
+    "Kitap", "Kurs", "Yazılım", "Hizmet", "Diğer"
+  ]);
 
   // Auto-clear success message after 5 seconds
   useEffect(() => {
@@ -100,7 +103,10 @@ const AdminProductManagement: React.FC = () => {
     price: "",
     originalPrice: "",
     image: "",
+    imageFile: null as File | null,
     category: "",
+    categories: [] as string[],
+    newCategory: "",
     features: "",
     inStock: true,
     isDigital: false,
@@ -150,13 +156,49 @@ const AdminProductManagement: React.FC = () => {
       price: "",
       originalPrice: "",
       image: "",
+      imageFile: null,
       category: "",
+      categories: [],
+      newCategory: "",
       features: "",
       inStock: true,
       isDigital: false,
       downloadUrl: "",
     });
     setEditingProduct(null);
+  };
+
+  // Fotoğraf yükleme handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          imageFile: file,
+          image: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Yeni kategori ekleme
+  const handleAddCategory = () => {
+    if (formData.newCategory.trim()) {
+      const newCat = formData.newCategory.trim();
+      if (!categories.includes(newCat)) {
+        setCategories([...categories, newCat]);
+        setFormData(prev => ({
+          ...prev,
+          category: newCat,
+          newCategory: "",
+        }));
+      } else {
+        setError("Bu kategori zaten mevcut");
+      }
+    }
   };
 
   const handleCreate = async () => {
@@ -185,9 +227,7 @@ const AdminProductManagement: React.FC = () => {
 
       // Resmi kontrol et
       if (!formData.image || formData.image.trim() === "") {
-        errors.push("Ürün Resmi URL boş olamaz");
-      } else if (!formData.image.startsWith('http://') && !formData.image.startsWith('https://')) {
-        errors.push("Ürün Resmi URL'si http:// veya https:// ile başlamalıdır");
+        errors.push("Ürün Resmi gereklidir");
       }
 
       // Kategoriyi kontrol et
@@ -338,8 +378,6 @@ const AdminProductManagement: React.FC = () => {
       downloadUrl: product.downloadUrl || "",
     });
   };
-
-  const categories = Array.from(new Set(products.map(p => p.category)));
 
   if (loading) {
     return (
@@ -513,57 +551,41 @@ const AdminProductManagement: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="category">Kategori * (Mevcut veya Yeni Yazın)</Label>
-                <Select
-                  value={(formData.category === "new" ? "" : formData.category) || ""}
-                  onValueChange={(value) => {
-                    if (value === "new") {
-                      setFormData({ ...formData, category: "" });
-                    } else {
-                      setFormData({ ...formData, category: value });
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Kategori seçin veya aşağıya yazın" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.length > 0 && categories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                    <SelectItem value="new">+ Yeni Kategori Ekle</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Eğer "Yeni Kategori Ekle" seçilmişse input göster */}
-                {formData.category === "" && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Yeni kategori adı yazın (örn: Elektronik, Giyim, Aksesuar)"
+                <Label htmlFor="category">Kategori * (Mevcut veya Yeni)</Label>
+                <div className="flex gap-2">
+                  <Select
                     value={formData.category || ""}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    autoFocus
-                  />
-                )}
-
-                {/* Mevcut kategoriler */}
-                {formData.category === "" && categories.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs text-muted-foreground mb-2">Veya mevcut kategorilerden seçin:</p>
-                    <div className="flex flex-wrap gap-2">
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, category: value });
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Kategori seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {categories.map(cat => (
-                        <Badge
-                          key={cat}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-gray-100"
-                          onClick={() => setFormData({ ...formData, category: cat })}
-                        >
-                          {cat}
-                        </Badge>
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                       ))}
-                    </div>
-                  </div>
-                )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Yeni kategori ekleme */}
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Yeni kategori adı"
+                    value={formData.newCategory || ""}
+                    onChange={(e) => setFormData({ ...formData, newCategory: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCategory}
+                    className="whitespace-nowrap"
+                  >
+                    + Ekle
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -590,13 +612,23 @@ const AdminProductManagement: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="image">Ürün Resmi URL *</Label>
-                <Input
-                  id="image"
-                  value={formData.image || ""}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <Label htmlFor="image">Ürün Resmi *</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-500 transition">
+                  <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="image" className="cursor-pointer block">
+                    <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">
+                      Resim seçmek için tıklayın
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF</p>
+                  </label>
+                </div>
               </div>
             </div>
 
