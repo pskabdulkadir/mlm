@@ -1556,21 +1556,10 @@ export const mongoDb = {
       try {
         const { PointsCareerService } = await import('./points-career-service');
         await PointsCareerService.processCareerUpdate(data.userId, purchaseAmount);
-        
-        // --- AUTONOMOUS MLM SYSTEM BRAIN INTEGRATION ---
-        try {
-          const { MlmEngineBridge } = await import('../../src/core/engine/MlmEngineBridge');
-          console.log(`[AUTONOMOUS SYSTEM BRAIN] Automatically processing MLM unilevel payouts for buyer: ${data.userId}`);
-          await MlmEngineBridge.calculateAndApplyPayout({
-            saleId: purchase.id || `S-${Date.now().toString().slice(-6)}`,
-            buyerUserId: data.userId,
-            amount: purchaseAmount,
-            modelType: "unilevel",
-            productName: "Ürün Paketi"
-          });
-        } catch (autonErr) {
-          console.error("Autonomous MLM Payout Engine execution failed during fulfillment:", autonErr);
-        }
+
+        // REMOVED: MlmEngineBridge call here
+        // Reason: MonolineCommissionService is now CANONICAL commission engine
+        // All sponsor, depth, and pool commissions are handled by MonolineCommissionService.calculateMonolineCommissions()
 
         // Real-time projection of personal sales / purchases into MonthlySummary
         try {
@@ -1610,11 +1599,13 @@ export const mongoDb = {
       }
     }
 
-    try {
-      await this.distributeProductCommissions(purchase.id);
-    } catch (err) {
-      console.error("Error distributing commissions automatically:", err);
-    }
+    // REMOVED: distributeProductCommissions() call here
+    // Reason: Duplicate payout risk
+    // Commission distribution is handled in purchase-fulfillment.ts:
+    // - MonolineCommissionService.calculateMonolineCommissions() [CANONICAL]
+    //   ├─ Sponsor bonus: %25
+    //   ├─ Depth (7-level): %15
+    //   └─ Pool: %10
 
     try {
       // Release held commissions for users who became eligible

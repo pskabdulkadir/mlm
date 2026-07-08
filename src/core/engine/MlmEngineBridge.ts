@@ -3,9 +3,28 @@ import { PayoutEngine, FormulaResolver } from "./payout-engine";
 import { User } from "../../../server/lib/models";
 import { applyWalletTransactions } from "../../../server/lib/wallet-transaction.service";
 
+/**
+ * ⚠️ DEPRECATED: This engine is no longer used in production.
+ *
+ * STATUS: This was replaced by MonolineCommissionService as the canonical commission engine.
+ *
+ * REMAINING USES:
+ * - Test/demo endpoint: POST /api/beyin-engine/payouts/calculate
+ * - Audit/reporting only (not production)
+ *
+ * NOTES:
+ * - PayoutEngine does correct unilevel calculations
+ * - But results are NOT applied to wallet (no-op after early removal)
+ * - No commission logging/audit trail
+ * - No integration with career bonus system
+ * - Closure table algorithm is sound but unused
+ *
+ * FUTURE: Consider removal or refactor for audit-only use.
+ */
 export class MlmEngineBridge {
   /**
    * Convert a MongoDB Mongoose User document to the engine's stateless UserNode format.
+   * ⚠️ DEPRECATED: Only used for testing, not production.
    */
   public static toUserNode(mongoUser: any): UserNode {
     return {
@@ -24,7 +43,19 @@ export class MlmEngineBridge {
   }
 
   /**
-   * Calculate and apply payouts using the PayoutEngine, updating Mongoose database atomically.
+   * ⚠️ DEPRECATED: Calculate and apply payouts using the PayoutEngine.
+   *
+   * This method is ONLY used in test/demo endpoints, NOT in production flow.
+   * Production commissions are handled by MonolineCommissionService.
+   *
+   * Issues with this implementation:
+   * - No commission logging/audit trail
+   * - No integration with career bonus payment
+   * - Separate from MonolineCommissionService (can diverge)
+   * - No error handling/rollback
+   * - Formula settings not persisted
+   *
+   * @deprecated Use MonolineCommissionService.calculateMonolineCommissions() instead
    */
   public static async calculateAndApplyPayout(payload: {
     saleId: string;

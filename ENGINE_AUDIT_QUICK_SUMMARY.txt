@@ -1,0 +1,193 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║          🔍 AUTONOMOUS MOTOR AUDIT - KRİTİK BULGULAR ÖZET                      ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📍 LOKASYON: src/core/engine/
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 🔴 KRİTİK SORUNLAR (Production Impact)                                         │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+1️⃣ ENGINE ARTIK KULLANILMIYOR ⚠️ DEPRECATED
+   ├─ MlmEngineBridge.calculateAndApplyPayout()
+   │  └─ Tüm çağrılar removed (mono-database.ts, purchase-fulfillment.ts)
+   ├─ PayoutEngine unused
+   ├─ Payout strategies unused
+   └─ Status: Dead code → Cleanup needed
+
+2️⃣ COMMISSION KAYIT MEKANİZMASI EKSİK 🔴 CRITICAL
+   ├─ PayoutEngine hesaplama yapıyor ama
+   ├─ Herhangi bir log/audit kayıtlamıyor
+   ├─ Reconsiliation impossible
+   └─ Dispute resolution imkansız
+
+3️⃣ CAREER BONUS ÖDEME BAĞLANTISI YOK 🔴 CRITICAL
+   ├─ CareerService level yükseltiyor
+   ├─ Ama bonus miktarı hesaplamıyor
+   ├─ Bonus payment bağlantısı yok
+   └─ PointsCareerService'te ayrı implementasyon
+       └─ İki path = ikilik riski
+
+4️⃣ YÜZDE MODELI TUTARSIZ 🟠 HIGH
+   ├─ UnilevelStrategy: 25% sponsor + 15% depth + 5% pool = 45%
+   ├─ MonolineCommissionService: 25% sponsor + 15% depth + 10% pool = 50%
+   ├─ Payout Strategy: Career diff bonus = 0.5%-5% ← YANLIŞ
+   └─ Reconciliation failing
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 🟠 YÜKSEk ÖNEM SORUNLAR (System Integrity)                                     │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+5️⃣ FORMULAREOLVER AYARLARI PERSIST EDILMIYOR 🟠 HIGH
+   ├─ updateFormula() memory-only update yapıyor
+   ├─ Server restart = defaults'e reset
+   ├─ Admin ayarları kayboluyor
+   └─ Solution: Database persistence needed
+
+6️⃣ ERROR HANDLING EKSİK 🟠 HIGH
+   ├─ Hata oluşunca sadece log yapılıyor
+   ├─ Transaction rollback yok
+   ├─ Partial wallet updates mümkün
+   └─ Inconsistent state riski
+
+7️⃣ LOGGING GRANULARITY DÜŞÜK 🟡 MEDIUM
+   ├─ Just string messages
+   ├─ No structured data
+   ├─ Query/aggregate impossible
+   └─ Debug hard
+
+8️⃣ CAREER CONFIGURATION HARDCODED 🟡 MEDIUM
+   ├─ CAREER_LEVELS array fixed
+   ├─ Admin can't change requirements
+   ├─ Retroactive changes impossible
+   └─ Code deploy gerekli her değişiklik
+
+9️⃣ MONOLINE STRATEGY CAREER BONUS YANLIŞ 🟡 MEDIUM
+   ├─ careerRate = (level) * (poolRate / 10)
+   ├─ Level 1: 1%  (should be 10%?)
+   ├─ Level 10: 10% (correct by accident)
+   └─ Formula incorrect
+
+🔟 CLOSURE TABLE CYCLE DETECTION YOK 🟡 MEDIUM
+   ├─ A → B → C → A (cycle)
+   ├─ Infinite loop possible
+   ├─ No max depth limit
+   └─ Malformed hierarchy undetected
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 📊 SUMMARY TABLE                                                               │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+| # | Issue | Severity | Status | Action |
+|---|-------|----------|--------|--------|
+| 1 | Engine deprecated | 🔴 CRITICAL | Dead code | Remove or re-activate |
+| 2 | No commission logging | 🔴 CRITICAL | No audit trail | Add CommissionLog model |
+| 3 | Career bonus missing | 🔴 CRITICAL | No payment | Integrate with CareerService |
+| 4 | % mismatch | 🟠 HIGH | Reconcile fail | Unify commission model |
+| 5 | Formula not persisted | 🟠 HIGH | Settings reset | Database storage |
+| 6 | No error handling | 🟠 HIGH | Data risk | Add rollback logic |
+| 7 | Low logging detail | 🟡 MEDIUM | Debug hard | Structured logs |
+| 8 | Config hardcoded | 🟡 MEDIUM | Admin blocked | Move to database |
+| 9 | Career bonus formula | 🟡 MEDIUM | Wrong amount | Fix formula |
+| 10 | No cycle detection | 🟡 MEDIUM | Loop risk | Add validation |
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 IMMEDIATE ACTIONS (Recommended Priority)                                    │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+HEUTE (Today):
+  1. Decide: Remove engine or re-activate?
+     └─ Recommendation: REMOVE (simplifies system)
+  
+  2. Add commission logging
+     └─ Create CommissionCalculationLog model
+     └─ Track: sale_id, buyer, recipient, amount, rate, engine_type
+
+DIESE WOCHE (This Week):
+  3. Fix career bonus integration
+     └─ Move bonus calc to CareerService
+     └─ Return bonus amount in CareerUpgradeEvent
+     └─ Apply atomically
+
+  4. Add error handling + rollback
+     └─ Atomic transactions with rollback on failure
+
+NÄCHSTE WOCHE (Next Week):
+  5. Persist formula settings
+     └─ Database storage + admin endpoint
+
+  6. Dynamic career configuration
+     └─ Move CAREER_LEVELS to database
+     └─ Admin panel for updates
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ ✅ FILES TO REVIEW / FIX                                                       │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+CRITICAL (Review today):
+  ✗ src/core/engine/MlmEngineBridge.ts (Dead code?)
+  ✗ src/core/engine/payout-engine.ts (Error handling)
+  ✗ src/core/engine/career-service.ts (Career bonus)
+
+HIGH (Fix this week):
+  ✗ src/core/engine/payout-strategies.ts (Career formula, cycle detection)
+  ✗ server/lib/monoline-commission-service.ts (Add logging)
+  ✗ server/lib/points-career-service.ts (Unify career updates)
+
+MEDIUM (Plan for next week):
+  ✗ src/core/engine/config/career-config.ts (Move to database)
+  ✗ Create CommissionCalculationLog model
+  ✗ Create FormulaConfig persistence layer
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 📋 VERIFICATION CHECKLIST                                                      │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+Functional Testing:
+  [ ] Commission calculation correct ($25+$15+$10=$50)
+  [ ] Career bonus amount correct (10% of requirement)
+  [ ] No duplicate commissions
+  [ ] No orphaned records
+  [ ] Error scenarios handled gracefully
+
+Data Integrity:
+  [ ] Wallet balance = sum of transactions
+  [ ] Career level consistent
+  [ ] Commission logs match wallets
+  [ ] No cycles in hierarchy
+  [ ] No infinite loops
+
+Audit Trail:
+  [ ] Every commission logged with details
+  [ ] Every career bonus logged
+  [ ] Every error logged with context
+  [ ] Reconciliation between engines possible
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTATION                                                               │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+See detailed report:
+→ AUTONOMOUS_ENGINE_AUDIT_REPORT.md (746 lines)
+  ├─ 10 critical/high/medium issues detailed
+  ├─ Code snippets showing problems
+  ├─ Recommended solutions
+  ├─ Implementation guidelines
+  └─ Audit checklist
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+OVERALL STATUS: ⚠️ ENGINE NON-FUNCTIONAL (Deprecated)
+
+The autonomous engine is not used in current flow due to earlier fixes that made
+MonolineCommissionService canonical. Engine code is dead and should be either:
+  A) Removed (recommended) - cleaner codebase
+  B) Re-activated - merge with MonolineCommissionService
+  C) Repurposed - audit/reporting only
+
+RECOMMENDATION: Option A (Remove)
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Generated: 2025
+Priority: REVIEW IMMEDIATELY

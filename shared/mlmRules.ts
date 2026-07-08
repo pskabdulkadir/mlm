@@ -113,11 +113,11 @@ export function getCareerLevelOrder(careerName?: string): number {
 }
 
 export function calculateSponsorBonus(amount: number, careerLevelName?: string): number {
-  const baseRate = COMMISSION_RATES.directSponsor; // 10%
-  const sponsorOrder = getCareerLevelOrder(careerLevelName);
-  const rateMultiplier = sponsorOrder >= 5 ? 1.25 : 1.0; // Safiyye is order 5. So Level 5+ gets +25% extra sponsor bonus.
-  const finalRate = baseRate * rateMultiplier; // 10% * 1.25 = 12.5% or 10%
-  return amount * (finalRate / 100);
+  // CANONICAL: Direct sponsor bonus is always 25% of product price
+  // This is a FIXED rate, not career-dependent
+  // (Dynamic bonuses beyond 25% are handled via career/rank bonuses separately)
+  const baseRate = COMMISSION_RATES.directSponsor; // 25%
+  return amount * (baseRate / 100);
 }
 
 export function calculateUnilevelCommission(amount: number, level: number): number {

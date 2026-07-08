@@ -308,6 +308,13 @@ const ProductSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+ProductSchema.pre('save', function(next) {
+  if (!this.id) {
+    (this as any).id = `prod-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+  next();
+});
+
 // --- ClonePage ---
 const ClonePageSchema = new Schema({
   userId: { type: String, required: true, index: true },
@@ -656,6 +663,53 @@ const BlueprintRequestSchema = new Schema({
 });
 
 export const BlueprintRequest = mongoose.models.BlueprintRequest || mongoose.model('BlueprintRequest', BlueprintRequestSchema);
+
+// --- CommissionCalculationLog (For Audit Trail & Reconciliation) ---
+const CommissionCalculationLogSchema = new Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  saleId: { type: String, required: true, index: true },
+  buyerId: { type: String, required: true, index: true },
+  recipientId: { type: String, required: true, index: true },
+  commissionType: {
+    type: String,
+    enum: ['SPONSOR', 'DEPTH_L1', 'DEPTH_L2', 'DEPTH_L3', 'DEPTH_L4', 'DEPTH_L5', 'DEPTH_L6', 'DEPTH_L7', 'CAREER_BONUS', 'POOL', 'COMPANY_FUND'],
+    required: true
+  },
+  engineType: {
+    type: String,
+    enum: ['monoline', 'unilevel', 'matrix', 'autonomous'],
+    default: 'monoline',
+    index: true
+  },
+  baseAmount: { type: Number, required: true }, // Sale amount
+  commissionRate: { type: Number, required: true }, // e.g., 0.25 for 25%
+  calculatedAmount: { type: Number, required: true },
+  walletApplied: { type: Boolean, default: false, index: true },
+  walletTransactionId: { type: String }, // Reference to WalletTransaction
+  status: {
+    type: String,
+    enum: ['CALCULATED', 'APPLIED', 'VERIFIED', 'FAILED'],
+    default: 'CALCULATED',
+    index: true
+  },
+  metadata: {
+    careerLevel: { type: Number },
+    depth: { type: Number },
+    directReferrals: { type: Number },
+    compression: { type: Boolean },
+    notes: { type: String }
+  },
+  error: { type: String }, // If status is FAILED
+  timestamp: { type: Date, default: Date.now, index: true },
+  verifiedAt: { type: Date }
+});
+
+CommissionCalculationLogSchema.index({ saleId: 1, recipientId: 1 });
+CommissionCalculationLogSchema.index({ buyerId: 1, timestamp: -1 });
+CommissionCalculationLogSchema.index({ engineType: 1, status: 1 });
+
+export const CommissionCalculationLog = mongoose.models.CommissionCalculationLog ||
+  mongoose.model('CommissionCalculationLog', CommissionCalculationLogSchema);
 
 // Aliases
 export const User = UserModel;

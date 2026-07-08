@@ -48,6 +48,8 @@ import {
   XCircle,
   Save,
   X,
+  Film,
+  FileText,
 } from "lucide-react";
 
 interface Product {
@@ -104,6 +106,8 @@ const AdminProductManagement: React.FC = () => {
     originalPrice: "",
     image: "",
     imageFile: null as File | null,
+    productFile: "",
+    productFileObj: null as File | null,
     category: "",
     categories: [] as string[],
     newCategory: "",
@@ -157,6 +161,8 @@ const AdminProductManagement: React.FC = () => {
       originalPrice: "",
       image: "",
       imageFile: null,
+      productFile: "",
+      productFileObj: null,
       category: "",
       categories: [],
       newCategory: "",
@@ -168,7 +174,7 @@ const AdminProductManagement: React.FC = () => {
     setEditingProduct(null);
   };
 
-  // Fotoğraf yükleme handler
+  // Ürün Görseli yükleme handler (sadece resimler)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -178,6 +184,22 @@ const AdminProductManagement: React.FC = () => {
           ...prev,
           imageFile: file,
           image: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Ürün Dosyası yükleme handler (tüm dosya türleri)
+  const handleProductFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          productFileObj: file,
+          productFile: reader.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -411,11 +433,27 @@ const AdminProductManagement: React.FC = () => {
       <Alert className="border-blue-200 bg-blue-50">
         <Package className="h-4 w-4" />
         <AlertDescription className="text-blue-700">
-          <div className="space-y-2">
-            <p><strong>🚀 Otomatik Entegrasyon:</strong> Eklediğiniz ürünler ana sayfadaki "Premium Ürün Koleksiyonu" bölümünde otomatik görüntülenir</p>
-            <p><strong>🔄 Sınırsız Ürün:</strong> İstediğiniz kadar ürün ekleyebilir, sistem kapasitesi sınırı yoktur</p>
-            <p><strong>💰 POS Entegrasyonu:</strong> Her yeni ürün otomatik olarak sanal POS sistemi ile entegre edilir</p>
-            <p><strong>📊 MLM Komisyonu:</strong> Tüm ürünlerde %40 komisyon otomatik dağıtılır</p>
+          <div className="space-y-3">
+            <div>
+              <p><strong>🚀 Otomatik Entegrasyon:</strong> Eklediğiniz ürünler ana sayfadaki "Premium Ürün Koleksiyonu" bölümünde ve tüm üye mağazalarında otomatik görüntülenir</p>
+            </div>
+            <div>
+              <p><strong>🔄 Sınırsız Ürün:</strong> İstediğiniz kadar ürün ekleyebilir, sistem kapasitesi sınırı yoktur</p>
+            </div>
+            <div>
+              <p><strong>💰 POS & E-Ticaret Entegrasyonu:</strong> Her yeni ürün otomatik olarak sanal POS sistemi, ödeme sistemi ve e-ticaret platformu ile entegre edilir</p>
+            </div>
+            <div>
+              <p><strong>📊 Monoline MLM Komisyon Dağıtımı - Toplam %50:</strong></p>
+              <ul className="ml-6 mt-2 space-y-1 text-sm font-medium">
+                <li>✓ <strong>%25 Sponsor Bonus:</strong> Doğrudan yukarı sponsor'un hesabına ödenir</li>
+                <li>✓ <strong>%15 Seviye Komisyonu:</strong> Monoline yapısında 7 seviye derinliğine dağıtılır</li>
+                <li>✓ <strong>%10 Pasif Havuz Geliri:</strong> Ağ genel fonuna yatırılır ve tüm üyelere dağıtılır</li>
+              </ul>
+            </div>
+            <div>
+              <p><strong>⚡ Gerçek Zamanlı Senkronizasyon:</strong> Ürün eklemeler, düzenlemeler ve silmeler tüm sistemlere anında yansır</p>
+            </div>
           </div>
         </AlertDescription>
       </Alert>
@@ -454,6 +492,7 @@ const AdminProductManagement: React.FC = () => {
                 <TableHead>Ürün</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead>Fiyat</TableHead>
+                <TableHead>Monoline Komisyon (%50)</TableHead>
                 <TableHead>Stok</TableHead>
                 <TableHead>Durum</TableHead>
                 <TableHead>İşlemler</TableHead>
@@ -488,6 +527,19 @@ const AdminProductManagement: React.FC = () => {
                           ${product.originalPrice}
                         </span>
                       )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div>
+                        <span className="font-semibold text-green-600">${(product.price * 0.50).toFixed(2)}</span>
+                        <span className="text-xs text-muted-foreground ml-2">(toplam)</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-0.5">
+                        <div>🎯 Sponsor: ${(product.price * 0.25).toFixed(2)}</div>
+                        <div>📊 Seviye (7): ${(product.price * 0.15).toFixed(2)}</div>
+                        <div>💰 Pasif Havuz: ${(product.price * 0.10).toFixed(2)}</div>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -532,7 +584,12 @@ const AdminProductManagement: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Yeni Ürün Ekle</DialogTitle>
             <DialogDescription>
-              Yeni ürün bilgilerini girin ve sisteme ekleyin.
+              <div className="space-y-2">
+                <p>Yeni ürün bilgilerini girin ve sisteme ekleyin.</p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm mt-2 text-yellow-800">
+                  <strong>💡 Bilgi:</strong> Eklediğiniz ürün otomatik olarak tüm ana sayfa, üye mağazaları ve POS sistemine entegre olacak. <strong>%50 Monoline MLM komisyonu</strong> (%25 sponsor + %15 seviye + %10 pasif havuz) otomatik dağıtılır.
+                </div>
+              </div>
             </DialogDescription>
           </DialogHeader>
 
@@ -610,26 +667,53 @@ const AdminProductManagement: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="image">Ürün Dosyası (Resim, PDF, Video, Word vb) *</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition">
+                <Label htmlFor="productImage">Ürün Görseli (Resim) *</Label>
+                <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 transition bg-purple-50">
                   <input
-                    id="image"
+                    id="productImage"
                     type="file"
-                    accept="image/*,.pdf,.mp4,.webm,.mov,.avi,.doc,.docx,.txt"
+                    accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
                   />
-                  <label htmlFor="image" className="cursor-pointer block">
-                    <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Dosya seçmek için tıklayın veya sürükleyin
+                  <label htmlFor="productImage" className="cursor-pointer block">
+                    <ImageIcon className="w-8 h-8 mx-auto text-purple-400 mb-2" />
+                    <p className="text-sm text-purple-700 font-semibold">
+                      Ürün Resmini Seç
                     </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Desteklenenler: Resimler (PNG, JPG, GIF), PDF, Video (MP4, WebM, MOV), Word (.doc, .docx), Metin Dosyaları
+                    <p className="text-xs text-purple-500 mt-2">
+                      Tüm resim formatları: PNG, JPG, JPEG, GIF, WebP, SVG
                     </p>
                     {formData.imageFile && (
                       <p className="text-xs text-green-600 mt-2 font-semibold">
                         ✓ {formData.imageFile.name}
+                      </p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="productFile">Ürün Dosyası (PDF, Video, Word vb) - İsteğe Bağlı</Label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition bg-blue-50">
+                  <input
+                    id="productFile"
+                    type="file"
+                    accept=".pdf,.mp4,.webm,.mov,.avi,.doc,.docx,.txt,.zip,.rar"
+                    onChange={handleProductFileUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="productFile" className="cursor-pointer block">
+                    <FileText className="w-8 h-8 mx-auto text-blue-400 mb-2" />
+                    <p className="text-sm text-blue-700 font-semibold">
+                      Dosya Seç veya Sürükle
+                    </p>
+                    <p className="text-xs text-blue-500 mt-2">
+                      PDF, Video (MP4, WebM, MOV, AVI), Word (.doc, .docx), Metin, ZIP, RAR
+                    </p>
+                    {formData.productFileObj && (
+                      <p className="text-xs text-green-600 mt-2 font-semibold">
+                        ✓ {formData.productFileObj.name}
                       </p>
                     )}
                   </label>
@@ -698,15 +782,68 @@ const AdminProductManagement: React.FC = () => {
 
               {formData.image && (
                 <div>
-                  <Label>Ön İzleme</Label>
-                  <img
-                    src={formData.image}
-                    alt="Preview"
-                    className="w-full h-32 object-cover rounded border"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
+                  <Label>Ürün Görseli Ön İzlemesi</Label>
+                  <div className="bg-purple-50 rounded border border-purple-200 p-4">
+                    {formData.image.startsWith('data:image') || formData.image.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+                      <img
+                        src={formData.image}
+                        alt="Görsel Ön İzlemesi"
+                        className="w-full max-h-40 object-contain rounded"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-32 bg-purple-100 rounded">
+                        <p className="text-sm text-purple-600 font-semibold">Geçersiz resim formatı</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {formData.productFile && (
+                <div>
+                  <Label>Ürün Dosyası Ön İzlemesi</Label>
+                  <div className="bg-blue-50 rounded border border-blue-200 p-4">
+                    {formData.productFile.startsWith('data:application/pdf') || formData.productFile.match(/\.pdf$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-red-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                          <p className="text-sm font-semibold text-red-700">PDF Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(mp4|webm|mov|avi)$/i) || formData.productFile.startsWith('data:video') ? (
+                      <div className="flex items-center justify-center h-32 bg-blue-100 rounded">
+                        <div className="text-center">
+                          <Film className="w-8 h-8 mx-auto text-blue-500 mb-2" />
+                          <p className="text-sm font-semibold text-blue-700">Video Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(doc|docx)$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-purple-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-purple-500 mb-2" />
+                          <p className="text-sm font-semibold text-purple-700">Word Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(zip|rar)$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-orange-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-orange-500 mb-2" />
+                          <p className="text-sm font-semibold text-orange-700">Sıkıştırılmış Dosya</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.txt$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-gray-500 mb-2" />
+                          <p className="text-sm font-semibold text-gray-700">Metin Dosyası</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                        <p className="text-sm text-gray-600 font-semibold">{formData.productFileObj?.name || "Bilinmeyen dosya"}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -737,7 +874,12 @@ const AdminProductManagement: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Ürün Düzenle</DialogTitle>
             <DialogDescription>
-              Ürün bilgilerini güncelleyin.
+              <div className="space-y-2">
+                <p>Ürün bilgilerini güncelleyin.</p>
+                <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm mt-2 text-blue-800">
+                  <strong>📌 Not:</strong> Yapılan değişiklikler tüm sistemlere (ana sayfa, mağazalar, POS) anında yansıyacaktır. Değişiklik yapılsa da %50 Monoline MLM komisyon oranı (%25 sponsor + %15 seviye + %10 pasif havuz) sabit kalır.
+                </div>
+              </div>
             </DialogDescription>
           </DialogHeader>
 
@@ -801,12 +943,57 @@ const AdminProductManagement: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="edit-image">Ürün Resmi URL *</Label>
-                <Input
-                  id="edit-image"
-                  value={formData.image || ""}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                />
+                <Label htmlFor="edit-productImage">Ürün Görseli (Resim) *</Label>
+                <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 transition bg-purple-50">
+                  <input
+                    id="edit-productImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="edit-productImage" className="cursor-pointer block">
+                    <ImageIcon className="w-8 h-8 mx-auto text-purple-400 mb-2" />
+                    <p className="text-sm text-purple-700 font-semibold">
+                      Ürün Resmini Seç
+                    </p>
+                    <p className="text-xs text-purple-500 mt-2">
+                      Tüm resim formatları: PNG, JPG, JPEG, GIF, WebP, SVG
+                    </p>
+                    {formData.imageFile && (
+                      <p className="text-xs text-green-600 mt-2 font-semibold">
+                        ✓ {formData.imageFile.name}
+                      </p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-productFile">Ürün Dosyası (PDF, Video, Word vb) - İsteğe Bağlı</Label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition bg-blue-50">
+                  <input
+                    id="edit-productFile"
+                    type="file"
+                    accept=".pdf,.mp4,.webm,.mov,.avi,.doc,.docx,.txt,.zip,.rar"
+                    onChange={handleProductFileUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="edit-productFile" className="cursor-pointer block">
+                    <FileText className="w-8 h-8 mx-auto text-blue-400 mb-2" />
+                    <p className="text-sm text-blue-700 font-semibold">
+                      Dosya Seç veya Sürükle
+                    </p>
+                    <p className="text-xs text-blue-500 mt-2">
+                      PDF, Video (MP4, WebM, MOV, AVI), Word (.doc, .docx), Metin, ZIP, RAR
+                    </p>
+                    {formData.productFileObj && (
+                      <p className="text-xs text-green-600 mt-2 font-semibold">
+                        ✓ {formData.productFileObj.name}
+                      </p>
+                    )}
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -865,12 +1052,68 @@ const AdminProductManagement: React.FC = () => {
 
               {formData.image && (
                 <div>
-                  <Label>Ön İzleme</Label>
-                  <img
-                    src={formData.image}
-                    alt="Preview"
-                    className="w-full h-32 object-cover rounded border"
-                  />
+                  <Label>Ürün Görseli Ön İzlemesi</Label>
+                  <div className="bg-purple-50 rounded border border-purple-200 p-4">
+                    {formData.image.startsWith('data:image') || formData.image.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ? (
+                      <img
+                        src={formData.image}
+                        alt="Görsel Ön İzlemesi"
+                        className="w-full max-h-40 object-contain rounded"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-32 bg-purple-100 rounded">
+                        <p className="text-sm text-purple-600 font-semibold">Geçersiz resim formatı</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {formData.productFile && (
+                <div>
+                  <Label>Ürün Dosyası Ön İzlemesi</Label>
+                  <div className="bg-blue-50 rounded border border-blue-200 p-4">
+                    {formData.productFile.startsWith('data:application/pdf') || formData.productFile.match(/\.pdf$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-red-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                          <p className="text-sm font-semibold text-red-700">PDF Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(mp4|webm|mov|avi)$/i) || formData.productFile.startsWith('data:video') ? (
+                      <div className="flex items-center justify-center h-32 bg-blue-100 rounded">
+                        <div className="text-center">
+                          <Film className="w-8 h-8 mx-auto text-blue-500 mb-2" />
+                          <p className="text-sm font-semibold text-blue-700">Video Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(doc|docx)$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-purple-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-purple-500 mb-2" />
+                          <p className="text-sm font-semibold text-purple-700">Word Dosyası</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.(zip|rar)$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-orange-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-orange-500 mb-2" />
+                          <p className="text-sm font-semibold text-orange-700">Sıkıştırılmış Dosya</p>
+                        </div>
+                      </div>
+                    ) : formData.productFile.match(/\.txt$/i) ? (
+                      <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-gray-500 mb-2" />
+                          <p className="text-sm font-semibold text-gray-700">Metin Dosyası</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                        <p className="text-sm text-gray-600 font-semibold">{formData.productFileObj?.name || "Bilinmeyen dosya"}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

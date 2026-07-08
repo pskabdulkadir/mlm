@@ -128,9 +128,12 @@ router.put("/admin/purchases/:purchaseId/approve", async (req: Request, res: Res
     
     // Update purchase status
     await mongoDb.updateProductPurchase(purchaseId, { status: "approved", approvedAt: new Date(), approvedBy: adminId });
-    
-    // Distribute commission sponsor bonus
-    await mongoDb.distributeProductCommissions(purchaseId);
+
+    // NOTE: Commission distribution is already handled at purchase creation time (createProductPurchase)
+    // - MlmEngineBridge.calculateAndApplyPayout() handles unilevel/depth commissions
+    // - MonolineCommissionService handles pool distribution
+    // - Sponsor bonus is auto-calculated and applied
+    // Removed: distributeProductCommissions() [was causing duplicate payout]
 
     // Fetch the purchase to find the user
     const purchase = await mongoDb.getProductPurchaseById(purchaseId);

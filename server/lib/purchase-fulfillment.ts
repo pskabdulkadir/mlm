@@ -93,27 +93,11 @@ export async function fulfillProductPurchase(params: {
       `PURCHASE-${resultPurchase.id || Date.now()}`
     );
 
-    // 5. Award Points & Career and Update Active Membership Status (Aktiflik)
+    // 5. Update Active Membership Status (Aktiflik)
+    // NOTE: Career update is already done in createProductPurchase()
+    // This section only handles membership duration (yearly/monthly/etc.)
     if (finalUserId) {
       try {
-        const { PointsCareerService } = await import('./points-career-service');
-        await PointsCareerService.processCareerUpdate(finalUserId, purchaseAmount);
-        
-        // --- AUTONOMOUS MLM SYSTEM BRAIN INTEGRATION ---
-        try {
-          const { MlmEngineBridge } = await import('../../src/core/engine/MlmEngineBridge');
-          console.log(`[AUTONOMOUS SYSTEM BRAIN] Automatically processing MLM unilevel payouts for buyer: ${finalUserId}`);
-          await MlmEngineBridge.calculateAndApplyPayout({
-            saleId: resultPurchase.id || `S-${Date.now().toString().slice(-6)}`,
-            buyerUserId: finalUserId,
-            amount: purchaseAmount,
-            modelType: "unilevel",
-            productName: (product as any).name || "Ürün Paketi"
-          });
-        } catch (autonErr) {
-          console.error("Autonomous MLM Payout Engine execution failed during fulfillment:", autonErr);
-        }
-        
         // Activity status logic (Aktiflik)
         const userObj = await mongoDb.getUserById(finalUserId);
         if (userObj) {

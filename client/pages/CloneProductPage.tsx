@@ -106,13 +106,6 @@ export default function CloneProductPage() {
     if (memberId) {
       fetchCloneProductData(memberId);
       trackClonePageVisit(memberId);
-
-      // Auto-refresh products every 5 seconds for real-time updates
-      const refreshInterval = setInterval(() => {
-        fetchCloneProductData(memberId);
-      }, 5000);
-
-      return () => clearInterval(refreshInterval);
     }
   }, [memberId]);
 
@@ -490,210 +483,6 @@ export default function CloneProductPage() {
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {product.inStock ? "Satın Al" : "Stokta Yok"}
                     </Button>
-                    <div className="hidden">
-                      <DialogContent className="hidden">
-                        <DialogHeader>
-                          <DialogTitle>Ürün Satın Al - {product.name}</DialogTitle>
-                          <DialogDescription>
-                            {pageData.member.fullName} sponsorluğunda güvenli alışveriş
-                          </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-6">
-                          {/* Ürün Özeti */}
-                          <Card className={`${vividTheme.cardBg} border-spiritual-gold/50`}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center space-x-4">
-                                <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded-lg" />
-                                <div className="flex-1">
-                                  <h4 className="font-bold">{product.name}</h4>
-                                  <p className="text-2xl font-bold text-primary">${product.price}</p>
-                                  <p className="text-sm text-spiritual-gold">
-                                    🎯 {pageData.member.fullName} ${(product.price * 0.25 * selectedQuantity).toFixed(2)} komisyon kazanacak
-                                  </p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Adet Seçimi */}
-                          <div>
-                            <Label>Adet</Label>
-                            <div className="flex items-center space-x-3 mt-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
-                              >
-                                -
-                              </Button>
-                              <span className="w-12 text-center font-bold">{selectedQuantity}</span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedQuantity(selectedQuantity + 1)}
-                              >
-                                +
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Teslimat Bilgileri */}
-                          {!product.isDigital ? (
-                            <div className="space-y-4">
-                              <h4 className="font-medium">Teslimat Bilgileri</h4>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label>Ad Soyad *</Label>
-                                  <Input
-                                    value={shippingAddress.fullName}
-                                    onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
-                                    placeholder="Tam adınız"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Telefon *</Label>
-                                  <Input
-                                    value={shippingAddress.phone}
-                                    onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
-                                    placeholder="0555 123 45 67"
-                                  />
-                                </div>
-                                <div className="mt-4">
-                                  <Label>E-posta Adresi *</Label>
-                                  <Input
-                                    type="email"
-                                    value={guestEmail}
-                                    onChange={(e) => setGuestEmail(e.target.value)}
-                                    placeholder="ornek@email.com"
-                                    className="mt-1"
-                                  />
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Sipariş bilgileriniz ve kargo takibi bu adrese gönderilecektir.
-                                  </p>
-                                </div>
-                              </div>
-                              <div>
-                                <Label>Adres *</Label>
-                                <Textarea
-                                  value={shippingAddress.address}
-                                  onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
-                                  placeholder="Mahalle, sokak, apartman no"
-                                  rows={3}
-                                />
-                              </div>
-                              <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                  <Label>İl *</Label>
-                                  <Input
-                                    value={shippingAddress.city}
-                                    onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
-                                    placeholder="İstanbul"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>İlçe *</Label>
-                                  <Input
-                                    value={shippingAddress.state}
-                                    onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
-                                    placeholder="Kadıköy"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Posta Kodu</Label>
-                                  <Input
-                                    value={shippingAddress.zipCode}
-                                    onChange={(e) => setShippingAddress({ ...shippingAddress, zipCode: e.target.value })}
-                                    placeholder="34000"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                               <h4 className="font-medium text-purple-600 flex items-center gap-2">
-                                 <Download className="w-5 h-5" />
-                                 Dijital Ürün Erişimi
-                               </h4>
-                               <p className="text-sm text-gray-600 bg-purple-50 p-3 rounded-lg border border-purple-100 italic">
-                                 Bu bir dijital üründür. Ödeme sonrası panelinizden anında erişebilir ve indirebilirsiniz. 
-                                 Ürüne erişebilmeniz için lütfen kayıtlı e-posta adresinizi girin.
-                               </p>
-                               <div>
-                                  <Label>E-posta Adresi *</Label>
-                                  <Input
-                                    type="email"
-                                    value={guestEmail}
-                                    onChange={(e) => setGuestEmail(e.target.value)}
-                                    placeholder="ornek@email.com"
-                                    className="mt-1"
-                                  />
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Satın aldığınız ürün bu e-posta adresiyle ilişkili hesaba tanımlanacaktır.
-                                  </p>
-                                </div>
-                            </div>
-                          )}
-
-                          {/* Toplam ve Komisyon */}
-                          <Card className={`${vividTheme.cardBg} border-purple-500/50`}>
-                            <CardContent className="p-4 space-y-2">
-                              <div className="flex justify-between">
-                                <span>Ürün Fiyatı:</span>
-                                <span>${product.price}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Adet:</span>
-                                <span>{selectedQuantity}</span>
-                              </div>
-                              <div className="flex justify-between font-bold text-lg">
-                                <span>Toplam:</span>
-                                <span>${(product.price * selectedQuantity).toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between text-spiritual-gold font-medium">
-                                <span>Sponsor Komisyonu (%25):</span>
-                                <span>${(product.price * selectedQuantity * 0.25).toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between text-blue-600 font-medium">
-                                <span>Network Dağıtımı (%15):</span>
-                                <span>${(product.price * selectedQuantity * 0.15).toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between text-gray-500 text-sm">
-                                <span>Sistem/Şirket (%60):</span>
-                                <span>${(product.price * selectedQuantity * 0.60).toFixed(2)}</span>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          <div className="flex space-x-3">
-                            <Button
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => setPurchaseDialogOpen(false)}
-                            >
-                              İptal
-                            </Button>
-                            <Button
-                              className={`flex-1 ${vividTheme.buttonPrimary}`}
-                              onClick={handleProductPurchase}
-                              disabled={processingPurchase || !guestEmail || (!product.isDigital && (!shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || !shippingAddress.city))}
-                            >
-                              {processingPurchase ? (
-                                <>
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                  İşleniyor...
-                                </>
-                              ) : (
-                                <>
-                                  <CreditCard className="w-4 h-4 mr-2" />
-                                  Satın Al
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </div>
 
                     <Button
                       variant="outline"
@@ -1201,17 +990,24 @@ export default function CloneProductPage() {
                     <span>Toplam:</span>
                     <span>${(selectedProduct.price * selectedQuantity).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-spiritual-gold font-medium">
-                    <span>Sponsor Komisyonu (%25):</span>
-                    <span>${(selectedProduct.price * selectedQuantity * 0.25).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-blue-600 font-medium">
-                    <span>Network Dağıtımı (%15):</span>
-                    <span>${(selectedProduct.price * selectedQuantity * 0.15).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-500 text-sm">
-                    <span>Sistem/Şirket (%60):</span>
-                    <span>${(selectedProduct.price * selectedQuantity * 0.60).toFixed(2)}</span>
+                  <div className="border-t border-purple-200 pt-3 mt-3 space-y-2">
+                    <div className="text-sm font-semibold text-purple-700 mb-2">Monoline Komisyon Dağılımı (Toplam %50):</div>
+                    <div className="flex justify-between text-spiritual-gold font-medium">
+                      <span>🎯 Sponsor Bonus (%25):</span>
+                      <span>${(selectedProduct.price * selectedQuantity * 0.25).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-blue-600 font-medium">
+                      <span>📊 Seviye Bonusu (%15):</span>
+                      <span>${(selectedProduct.price * selectedQuantity * 0.15).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600 font-medium">
+                      <span>💰 Pasif Havuz (%10):</span>
+                      <span>${(selectedProduct.price * selectedQuantity * 0.10).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-500 text-sm pt-2 border-t border-purple-200">
+                      <span>💼 Sistem Fonu (%50):</span>
+                      <span>${(selectedProduct.price * selectedQuantity * 0.50).toFixed(2)}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

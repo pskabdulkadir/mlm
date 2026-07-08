@@ -118,8 +118,6 @@ export class PointsCareerService {
   ): Promise<void> {
     const { mlmDb } = await import('./mlm-database');
     const { CAREER_CONFIG_MAP, calculateCareerLevel } = await import('../../shared/mlmRules');
-    const { CareerService } = await import('../../src/core/engine/career-service');
-    const { MlmEngineBridge } = await import('../../src/core/engine/MlmEngineBridge');
     
     const buyer = await mlmDb.getUserById(buyerUserId);
     if (!buyer) return;
@@ -172,27 +170,34 @@ export class PointsCareerService {
           order: CAREER_CONFIG_MAP[newCareerName].order,
         };
         console.log(`🎊 Kariyer Atladı! ${sponsor.fullName}: ${oldCareerName} -> ${newCareerName}`);
-      }
 
-      // Sync with Autonomous Beyin CareerService
-      try {
-        const engineUser = MlmEngineBridge.toUserNode(sponsor);
-        engineUser.total_team_ciro = newCiro;
-        engineUser.direct_references = actualDirectReferralsCount;
+        // AUTOMATIC CAREER BONUS PAYMENT
+        try {
+          const newCareerConfig = CAREER_CONFIG_MAP[newCareerName];
+          const rankBonus = (newCareerConfig.requiredUSD || 0) * 0.1; // 10% of required USD as rank bonus
 
-        const engineUsersMap = new Map<string, any>([[engineUser.id, engineUser]]);
-        const engineLogs: any[] = [];
-        const upgradeEvent = CareerService.checkCareerUpgrade(engineUser.id, engineUsersMap, engineLogs);
-        
-        if (upgradeEvent) {
-          console.log(`🎊 [BEYIN-ENGINE-SYNC] Career Upgrade detected by autonomous engine: ${sponsor.fullName} upgraded to Level ${upgradeEvent.newLevel} (${upgradeEvent.careerName})`);
-          updates.career_level = upgradeEvent.newLevel;
-        } else {
-          updates.career_level = engineUser.career_level;
+          if (rankBonus > 0) {
+            const { applyWalletTransactions } = await import('./wallet-transaction.service');
+            await applyWalletTransactions([{
+              userId: sponsor.id,
+              amount: rankBonus,
+              type: 'CAREER_RANK_BONUS',
+              reference: `CAREER-${newCareerName}-${Date.now()}`,
+              description: `Kariyer Yükselmesi Bonusu: ${oldCareerName} → ${newCareerName}`,
+              status: 'PAID'
+            }]);
+
+            console.log(`💰 Otomatik Kariyer Bonusu Ödendi: ${sponsor.fullName} = $${rankBonus.toFixed(2)} (${newCareerName})`);
+          }
+        } catch (bonusErr) {
+          console.error(`Kariyer bonus ödeme hatası (${sponsor.id}):`, bonusErr);
         }
-      } catch (err) {
-        console.error("Beyin engine sync career check error:", err);
       }
+
+      // NOTE: Autonomous engine sync removed (not canonical)
+      // Career level is already determined by PointsCareerService.calculateCareerLevel()
+      // (lines 153-156 above)
+      // If needed in future, use MlmRules directly instead of MlmEngineBridge
 
       await mlmDb.updateUser(sponsor.id, updates);
 

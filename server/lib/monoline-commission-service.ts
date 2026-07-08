@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { User as IUser, MonolineMLMSettings, MonolineCommissionStructure, MonolineCommissionTransaction, PassiveIncomeDistribution } from '../../shared/mlm-types';
 import { User } from './models';
 import { applyWalletTransactions } from './wallet-transaction.service';
-import { MonolineSettings, PassiveIncomePool, CommissionAudit, CompanyFund, CommissionLog } from './models';
+import { MonolineSettings, PassiveIncomePool, CommissionAudit, CompanyFund, CommissionLog, CommissionCalculationLog } from './models';
 import { MONOLINE_LEVEL_COMMISSIONS, MAX_MONOLINE_LEVEL } from './commission';
 import LoggerService, { LogContext } from './logger';
 
@@ -444,20 +444,21 @@ export class MonolineCommissionService {
   }
 
   static getDefaultCommissionStructure(): any {
-    // %50 Şirket Fonu | %25 Direkt Sponsor | %10 Unilevel (7 sev.) | %10 Monoline Havuz
+    // CANONICAL: %50 Company Fund | %25 Direct Sponsor | %15 Unilevel Depth (7 levels) | %10 Passive Pool
+    // Total commission to upline: %50 | Rest (%50): Company/System keeps
     return {
       productPrice: 20,
       directSponsorBonus: { percentage: 25, amount: 5 },
       depthCommissions: {
-        level1: { percentage: 3,   amount: 0.6 },
-        level2: { percentage: 2,   amount: 0.4 },
-        level3: { percentage: 1.5, amount: 0.3 },
-        level4: { percentage: 1.5, amount: 0.3 },
+        level1: { percentage: 5,   amount: 1.0 },  // Increased to match UNILEVEL_RATES
+        level2: { percentage: 3,   amount: 0.6 },
+        level3: { percentage: 2,   amount: 0.4 },
+        level4: { percentage: 2,   amount: 0.4 },
         level5: { percentage: 1,   amount: 0.2 },
-        level6: { percentage: 0.5, amount: 0.1 },
-        level7: { percentage: 0.5, amount: 0.1 },
-        totalPercentage: 10,
-        totalAmount: 2.0
+        level6: { percentage: 1,   amount: 0.2 },
+        level7: { percentage: 1,   amount: 0.2 },
+        totalPercentage: 15,  // Changed from 10 to 15 (matches unilevel model)
+        totalAmount: 3.0
       },
       passiveIncomePool: { percentage: 10, amount: 2.0, distribution: 'performance' },
       companyFund: { percentage: 50, amount: 10 }
@@ -538,6 +539,32 @@ export class MonolineCommissionService {
           sourceUserId: buyerId
         } as any);
         totalDistributed += amt;
+
+        // LOG COMMISSION CALCULATION FOR AUDIT TRAIL
+        try {
+          const logId = `COMM-${Date.now()}-${sponsor.id}`;
+          await CommissionCalculationLog.create({
+            id: logId,
+            saleId: `COMM-${buyerId}-${Date.now()}`,
+            buyerId: buyerId,
+            recipientId: sponsor.id,
+            commissionType: 'SPONSOR',
+            engineType: 'monoline',
+            baseAmount: productPrice,
+            commissionRate: 0.25, // Sponsor always 25%
+            calculatedAmount: amt,
+            walletApplied: false, // Will be true after applyWalletTransactions
+            status: 'CALCULATED',
+            metadata: {
+              careerLevel: (sponsor.careerLevel as any)?.order || 1,
+              depth: 1,
+              directReferrals: sponsor.directReferrals || 0,
+              notes: `Sponsor bonus for ${rawSponsorCareer} level`
+            }
+          });
+        } catch (logErr) {
+          console.error('Error logging sponsor commission:', logErr);
+        }
       }
     }
 

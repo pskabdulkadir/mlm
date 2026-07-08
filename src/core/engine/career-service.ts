@@ -12,6 +12,13 @@ export interface CareerUpgradeEvent {
   newLevel: number;
   careerName: string;
   timestamp: string;
+  bonusAmount: number;  // NEW: Calculated rank bonus (10% of requirement USD)
+  transaction?: {       // NEW: Transaction payload ready to apply
+    type: 'CAREER_RANK_BONUS';
+    amount: number;
+    reference: string;
+    description: string;
+  };
 }
 
 /**
@@ -105,11 +112,15 @@ export class CareerService {
     if (targetLevel > oldLevel) {
       user.career_level = targetLevel;
       const levelName = CAREER_LEVELS[targetLevel - 1].name;
+      const levelConfig = CAREER_LEVELS[targetLevel - 1];
+
+      // Calculate rank bonus: 10% of career requirement USD
+      const bonusAmount = (levelConfig.minTeamCiro || 0) * 0.1;
 
       logs.push({
         timestamp: timestamp(),
         type: "CAREER_UPGRADE",
-        message: `🎉 [CAREER-UPGRADE] [CareerUpgradeEvent] User ${userId} (${user.username}) promoted from Level ${oldLevel} to Level ${targetLevel} [${levelName}]! (Refs: ${directRefs}, Team Ciro: $${teamCiro})`
+        message: `🎉 [CAREER-UPGRADE] [CareerUpgradeEvent] User ${userId} (${user.username}) promoted from Level ${oldLevel} to Level ${targetLevel} [${levelName}]! Bonus: $${bonusAmount.toFixed(2)} (Refs: ${directRefs}, Team Ciro: $${teamCiro})`
       });
 
       return {
@@ -117,7 +128,14 @@ export class CareerService {
         oldLevel,
         newLevel: targetLevel,
         careerName: levelName,
-        timestamp: timestamp()
+        timestamp: timestamp(),
+        bonusAmount: Math.round(bonusAmount * 100) / 100,
+        transaction: {
+          type: 'CAREER_RANK_BONUS',
+          amount: Math.round(bonusAmount * 100) / 100,
+          reference: `CAREER-${levelName}-${timestamp()}`,
+          description: `Kariyer Yükselmesi Bonusu: ${CAREER_LEVELS[oldLevel - 1]?.name || 'Level ' + oldLevel} → ${levelName}`
+        }
       };
     }
 
