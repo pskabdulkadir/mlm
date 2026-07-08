@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { 
-  Brain, Zap, Heart, ShieldAlert, ShieldCheck, RefreshCw, 
+import {
+  Brain, Zap, Heart, ShieldAlert, ShieldCheck, RefreshCw,
   UserPlus, Award, UserCheck, TrendingUp, Users, Info, DollarSign,
   TreePine, BookOpen, Clock, Activity, ArrowRight, HelpCircle,
   Eye, Calendar, Sparkles, Smile, Shield, Compass, Landmark, TreeDeciduous
@@ -17,6 +17,27 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ActionProgressTracker from "@/components/ActionProgressTracker";
+
+type ActionProgress = {
+  id: string;
+  actionType: string;
+  title: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "failed";
+  startTime: Date;
+  endTime?: Date;
+  progress: number;
+  steps: Array<{
+    name: string;
+    status: "pending" | "completed" | "failed";
+    timestamp?: Date;
+    details?: string;
+  }>;
+  result?: any;
+  error?: string;
+  category: "operational" | "psychology" | "social" | "knowledge" | "simulation";
+};
 
 interface MemberBlueprintManagerProps {
   user: any;
@@ -27,6 +48,8 @@ export default function MemberBlueprintManager({ user, onRefreshUser }: MemberBl
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("operational");
+  const [currentAction, setCurrentAction] = useState<ActionProgress | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
   
   // Local state mirrored from backend state + user blueprint state
   const [globalState, setGlobalState] = useState({
@@ -96,39 +119,131 @@ export default function MemberBlueprintManager({ user, onRefreshUser }: MemberBl
     loadBlueprintState();
   }, [user?.id]);
 
-  // Handle generic blueprint post actions
+  // Handle generic blueprint post actions with progress tracking
   const triggerAction = async (actionType: string, payload: any) => {
+    const actionId = `action-${Date.now()}`;
+    const actionTitles: any = {
+      "assign-heir": "Varis Ataması",
+      "trigger-inheritance": "Veraset Protokolü Simülasyonu",
+      "energy-clean": "Otonom Temizliği Çalıştırma",
+      "insurance-grant": "Sigorta Fonu Yardım Talebı",
+      "toggle-burnout": "Tükenmişlik Modu Değişikliği",
+      "log-refusal": "Reddedilme Kaydı",
+      "update-donation-rate": "Bağış Oranı Güncellemesi",
+      "kardeslik-aid": "Kardeşlik Desteği Talebı",
+      "shadow-recovery-run": "Kayıp Dal Kurtarması"
+    };
+
+    const categoryMap: any = {
+      "assign-heir": "operational",
+      "trigger-inheritance": "operational",
+      "energy-clean": "operational",
+      "insurance-grant": "operational",
+      "toggle-burnout": "psychology",
+      "log-refusal": "psychology",
+      "update-donation-rate": "social",
+      "kardeslik-aid": "social",
+      "shadow-recovery-run": "operational"
+    };
+
+    const newAction: ActionProgress = {
+      id: actionId,
+      actionType: actionType,
+      title: actionTitles[actionType] || actionType,
+      description: `${actionTitles[actionType]} işlemi başlatılıyor...`,
+      status: "pending",
+      startTime: new Date(),
+      progress: 0,
+      steps: [
+        { name: "İşlem İstek İletimi", status: "pending" },
+        { name: "Sunucu İşlemesi", status: "pending" },
+        { name: "Sonuç Döndürme", status: "pending" },
+        { name: "Veritabanı Senkronizasyonu", status: "pending" },
+      ],
+      category: categoryMap[actionType] || "operational",
+    };
+
+    setCurrentAction(newAction);
+    setShowProgress(true);
+
     try {
       setLoading(true);
+
+      // Step 1: İstek İletimi
+      newAction.steps[0].status = "completed";
+      newAction.steps[0].timestamp = new Date();
+      newAction.progress = 25;
+      setCurrentAction({ ...newAction });
+
+      // Step 2: Sunucu İşlemesi
+      newAction.steps[1].status = "in_progress";
+      setCurrentAction({ ...newAction });
+
       const res = await fetch("/api/commissions/blueprint/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: actionType,
           userId: user?.id,
-          ...payload
-        })
+          ...payload,
+        }),
       });
+
+      newAction.steps[1].status = "completed";
+      newAction.steps[1].timestamp = new Date();
+      newAction.progress = 50;
+      newAction.steps[2].status = "in_progress";
+      setCurrentAction({ ...newAction });
+
       const data = await res.json();
+
+      newAction.steps[2].status = "completed";
+      newAction.steps[2].timestamp = new Date();
+      newAction.progress = 75;
+      setCurrentAction({ ...newAction });
+
       if (data.success) {
+        // Step 4: Veritabanı Senkronizasyonu
+        newAction.steps[3].status = "in_progress";
+        setCurrentAction({ ...newAction });
+
+        await loadBlueprintState();
+        if (onRefreshUser) onRefreshUser();
+
+        newAction.steps[3].status = "completed";
+        newAction.steps[3].timestamp = new Date();
+        newAction.status = "completed";
+        newAction.progress = 100;
+        newAction.endTime = new Date();
+        newAction.result = data.message || "İşlem başarıyla tamamlandı";
+        setCurrentAction({ ...newAction });
+
         toast({
           title: "🔮 Otonom İşlem Başarılı",
-          description: data.message,
+          description: data.message || "İşlem tamamlandı",
         });
-        loadBlueprintState();
-        if (onRefreshUser) onRefreshUser();
       } else {
+        newAction.status = "failed";
+        newAction.error = data.message || "İşlem gerçekleştirilemedi";
+        newAction.endTime = new Date();
+        setCurrentAction({ ...newAction });
+
         toast({
           title: "Hata",
           description: data.message || "İşlem gerçekleştirilemedi.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } catch (err: any) {
+      newAction.status = "failed";
+      newAction.error = err.message || "Bağlantı hatası oluştu";
+      newAction.endTime = new Date();
+      setCurrentAction({ ...newAction });
+
       toast({
         title: "Sistem Hatası",
         description: err.message || "Bağlantı hatası oluştu.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -947,6 +1062,13 @@ export default function MemberBlueprintManager({ user, onRefreshUser }: MemberBl
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Action Progress Tracker */}
+      <ActionProgressTracker
+        action={currentAction}
+        isOpen={showProgress}
+        onClose={() => setShowProgress(false)}
+      />
     </div>
   );
 }
