@@ -109,17 +109,17 @@ export default function CloneCustomerTracking() {
     try {
       setLoading(true);
       const response = await fetch(`/api/clone-products/${memberId}/stats`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setCustomers(data.customers || []);
-        
+
         // Calculate stats
         const totalCustomers = data.customers?.length || 0;
         const totalRevenue = data.customers?.reduce((sum: number, customer: CloneCustomer) => sum + customer.purchaseAmount, 0) || 0;
         const totalCommissions = data.customers?.reduce((sum: number, customer: CloneCustomer) => sum + customer.commissionAmount, 0) || 0;
         const averageOrderValue = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
-        
+
         // Count unique customers by email
         const uniqueEmails = new Set(data.customers?.map((c: CloneCustomer) => c.buyerEmail) || []);
         const repeatCustomers = totalCustomers - uniqueEmails.size;
@@ -133,58 +133,29 @@ export default function CloneCustomerTracking() {
           repeatCustomers,
         });
       } else {
-        // Demo data for display
-        const demoCustomers: CloneCustomer[] = [
-          {
-            id: "1",
-            buyerEmail: "m***@gmail.com",
-            orderId: "ORD-001",
-            productId: "product-1",
-            productName: "Manevi Gelişim Premium Seti",
-            purchaseAmount: 299,
-            commissionAmount: 44.85,
-            purchaseDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            status: "completed",
-            source: "clone_product_page",
-          },
-          {
-            id: "2",
-            buyerEmail: "a***@hotmail.com",
-            orderId: "ORD-002",
-            productId: "product-2",
-            productName: "Kutsal Tesbihat ve Zikirmatik",
-            purchaseAmount: 149,
-            commissionAmount: 22.35,
-            purchaseDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            status: "shipped",
-            source: "clone_product_page",
-          },
-          {
-            id: "3",
-            buyerEmail: "f***@yahoo.com",
-            orderId: "ORD-003",
-            productId: "product-3",
-            productName: "Nefis Mertebeleri Eğitim Paketi",
-            purchaseAmount: 499,
-            commissionAmount: 74.85,
-            purchaseDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            status: "delivered",
-            source: "clone_product_page",
-          },
-        ];
-
-        setCustomers(demoCustomers);
+        // No demo data - show empty state instead
+        setCustomers([]);
         setStats({
-          totalCustomers: 3,
-          totalRevenue: 947,
-          totalCommissions: 142.05,
-          averageOrderValue: 315.67,
-          conversionRate: 2.4,
+          totalCustomers: 0,
+          totalRevenue: 0,
+          totalCommissions: 0,
+          averageOrderValue: 0,
+          conversionRate: 0,
           repeatCustomers: 0,
         });
       }
     } catch (error) {
       console.error("Error fetching clone customers:", error);
+      // On error, show empty state instead of demo data
+      setCustomers([]);
+      setStats({
+        totalCustomers: 0,
+        totalRevenue: 0,
+        totalCommissions: 0,
+        averageOrderValue: 0,
+        conversionRate: 0,
+        repeatCustomers: 0,
+      });
     } finally {
       setLoading(false);
     }
