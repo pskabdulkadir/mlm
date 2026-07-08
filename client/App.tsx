@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { Suspense } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingScreen from "@/components/LoadingScreen";
+import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import Sistem from "./pages/Sistem";
 import ManeviPanel from "./pages/ManeviPanel";
@@ -42,7 +43,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <CartProvider>
+      <TooltipProvider>
       <Toaster />
       <Sonner />
       <ErrorBoundary>
@@ -86,7 +88,8 @@ const App = () => (
           </SystemUpdateGuard>
         </Suspense>
       </ErrorBoundary>
-    </TooltipProvider>
+      </TooltipProvider>
+    </CartProvider>
   </QueryClientProvider>
 );
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
+import { ShoppingCart as ShoppingCartModal } from "@/components/ShoppingCart";
 import {
   Card,
   CardContent,
@@ -65,6 +67,7 @@ interface Product {
 const ProductsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -75,6 +78,7 @@ const ProductsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const referralCode = searchParams.get('ref') || 'ak0000001';
 
@@ -244,6 +248,12 @@ const ProductsPage: React.FC = () => {
             </div>
             <div className="text-right">
               <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => setCartOpen(true)}
+                  className="relative bg-blue-600 hover:bg-blue-700"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                </Button>
                 <div className="text-center">
                   <ShieldCheck className="w-8 h-8 text-green-500 mx-auto mb-1" />
                   <p className="text-xs">Güvenli</p>
@@ -462,12 +472,28 @@ const ProductsPage: React.FC = () => {
 
                   <div className="flex gap-2">
                     <Button
+                      onClick={() => {
+                        addItem({
+                          id: product.id,
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.image,
+                        });
+                        setCartOpen(true);
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      disabled={!product.inStock}
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Sepete Ekle
+                    </Button>
+                    <Button
                       onClick={() => handlePurchase(product)}
                       className="flex-1 bg-gradient-to-r from-primary to-spiritual-purple hover:opacity-90"
                       disabled={!product.inStock}
                     >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      {product.inStock ? "Satın Al" : "Stokta Yok"}
+                      {product.inStock ? "Hemen Satın Al" : "Stokta Yok"}
                     </Button>
                     <Button variant="outline" size="sm">
                       <Share2 className="w-4 h-4" />
@@ -649,6 +675,9 @@ const ProductsPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Shopping Cart Modal */}
+      <ShoppingCartModal open={cartOpen} onOpenChange={setCartOpen} />
     </div>
   );
 };
