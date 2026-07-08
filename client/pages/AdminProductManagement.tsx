@@ -242,39 +242,28 @@ const AdminProductManagement: React.FC = () => {
         return;
       }
 
-      // FormData kullan - dosya upload için
-      const formDataObj = new FormData();
-      formDataObj.append("name", formData.name.trim());
-      formDataObj.append("description", formData.description.trim());
-      formDataObj.append("category", category);
-      formDataObj.append("price", String(Number(formData.price)));
-      if (formData.originalPrice) {
-        formDataObj.append("originalPrice", String(Number(formData.originalPrice)));
-      }
-      formDataObj.append("features", JSON.stringify(
-        formData.features.split(",").map(f => f.trim()).filter(f => f)
-      ));
-      formDataObj.append("inStock", String(formData.inStock));
-      formDataObj.append("isDigital", String(formData.isDigital));
-      if (formData.downloadUrl) {
-        formDataObj.append("downloadUrl", formData.downloadUrl);
-      }
-      formDataObj.append("autoIntegratePOS", "true");
+      // Ürün verilerini hazırla
+      const productData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        image: formData.image,
+        category: category,
+        price: Number(formData.price),
+        originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
+        features: formData.features.split(",").map(f => f.trim()).filter(f => f),
+        inStock: formData.inStock,
+        isDigital: formData.isDigital,
+        downloadUrl: formData.downloadUrl,
+        autoIntegratePOS: true,
+      };
 
-      // Dosya ekle
-      if (formData.imageFile) {
-        formDataObj.append("file", formData.imageFile);
-      } else if (formData.image && formData.image.startsWith("data:")) {
-        // Base64 resimleri Blob'a çevir
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-        formDataObj.append("file", blob, "image.png");
-      }
-
-      console.log("📤 Sending product data to server with file");
+      console.log("📤 Sending product data to server:", productData);
       const response = await fetch("/api/products/admin/products", {
         method: "POST",
-        body: formDataObj,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productData),
       });
 
       const data = await response.json();
