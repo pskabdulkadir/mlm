@@ -14831,12 +14831,12 @@ ${analysisData.topPerformers.map((u: any, i) => `${i + 1}. ${u.fullName} ($${(u.
 
       {/* AI Assistant Chatbot */}
       <AIAssistant
-        userId={userId}
+        userId={ADMIN_ID}
         panelType="admin"
         context={{
           role: "admin",
-          totalUsers: userStats?.totalUsers,
-          totalEarnings: userStats?.totalEarnings,
+          totalUsers: systemStats?.totalUsers,
+          totalRevenue: systemStats?.totalRevenue,
         }}
         position="bottom-right"
       />
