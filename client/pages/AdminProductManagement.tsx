@@ -302,11 +302,8 @@ const AdminProductManagement: React.FC = () => {
         return;
       }
 
-      // Image URL validasyonu
-      if (!formData.image.startsWith('http://') && !formData.image.startsWith('https://')) {
-        setError("Ürün resmi geçerli bir URL olmalıdır (http:// veya https:// ile başlamalı)");
-        return;
-      }
+      // Image validation - supports URLs and base64 data
+      // No validation needed - supports http URLs, data:image/..., etc.
 
       const response = await fetch(`/api/products/admin/products/${editingProduct.id}`, {
         method: "PUT",
