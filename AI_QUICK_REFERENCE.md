@@ -50,10 +50,13 @@
 
 ## 🔧 Konfigürasyon
 
-### .env File
+### ✅ **API Key Yok - Tamamen Ücretsiz!**
+
+Bot tamamen ücretsiz açık kaynak teknoloji kullanıyor. Hiçbir API key gerekli değil!
+
 ```env
-GROQ_API_KEY=gsk_xxxxx...
-GEMINI_API_KEY=AI...xxxxx...
+# Hiçbir konfigürasyon gerekmez!
+# Bot otomatik çalışır
 ```
 
 ### Import (React)

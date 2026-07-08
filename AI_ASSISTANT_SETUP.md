@@ -17,10 +17,12 @@ Tüm panellere (Member, Admin, Manevi, Zahiri, Batini, Quantum) **sınırsız ve
 - Context-aware cevaplar
 - Öne çıkan sorular (ilk açılışta)
 
-✅ **Çok API Desteği**
-- **Groq API** (ücretsiz, sınırsız) - birincil
-- **Gemini API** - fallback
-- **Mock responses** - API key olmadığında demo cevaplar
+✅ **Ücretsiz ve Sınırsız**
+- 100% açık kaynak çözüm
+- Hiçbir API key gerekli değil
+- Tamamen yerel işleme
+- Sınırsız sorular
+- Tamamen ücretsiz
 
 ✅ **Tüm Panellerde**
 - Member Panel
@@ -32,31 +34,18 @@ Tüm panellere (Member, Admin, Manevi, Zahiri, Batini, Quantum) **sınırsız ve
 
 ## Kurulum Adımları
 
-### 1. API Key Ayarla
+### ✅ **Kurulum Gerekli Değil!**
 
-`.env` dosyasına şunları ekleyin:
+Bot **tamamen ücretsiz** ve **sınırsız** açık kaynak teknoloji kullanıyor. API key'leri kaldırdık!
 
-```env
-# Groq API (ücretsiz, sınırsız)
-GROQ_API_KEY="your_groq_api_key_here"
+**Özellikler:**
+- ✅ Hiçbir API key gerekmez
+- ✅ Hiçbir ücret yoktur
+- ✅ Sınırsız sorular sorabilirsin
+- ✅ Tüm bilgiler yerel olarak işlenir
+- ✅ Tamamen özel ve güvenli
 
-# Gemini API (fallback)
-GEMINI_API_KEY="your_gemini_api_key_here"
-```
-
-### 2. Groq API Key Alma (Ücretsiz)
-
-1. https://console.groq.com adresine git
-2. Hesap oluştur
-3. API Keys sekmesine git
-4. Yeni key oluştur
-5. `GROQ_API_KEY` olarak .env'ye ekle
-
-### 3. Gemini API Key Alma (Ücretsiz)
-
-1. https://aistudio.google.com/app/apikey adresine git
-2. "Create API Key" butonuna tıkla
-3. `GEMINI_API_KEY` olarak .env'ye ekle
+**Hepsi bu!** Bot otomatik çalışır.
 
 ## Dosya Yapısı
 
@@ -249,16 +238,11 @@ npm run build
 npm start
 ```
 
-Sonra:
-```
-GROQ_API_KEY=xxx GEMINI_API_KEY=yyy node dist/server.cjs
-```
+**Hiçbir environment variable gerekmez!**
 
 ### Vercel/Netlify'da
 
-Environment variables olarak ayarla:
-- `GROQ_API_KEY`
-- `GEMINI_API_KEY`
+Hiçbir konfigürasyon yapmanız gerekmez. Bot otomatik çalışır!
 
 ## İstatistikler
 
