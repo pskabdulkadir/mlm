@@ -243,13 +243,13 @@ router.post("/join-session", getAuthenticatedUser, async (req: any, res) => {
   }
 })
 
-// Complete education - transfer payment from requester to mentor
+// Complete education - transfer payment from all participants to mentor
 router.post("/complete-education", getAuthenticatedUser, async (req: any, res) => {
   try {
-    const { requestId, requesterId } = req.body;
+    const { requestId } = req.body;
 
-    if (!requestId || !requesterId) {
-      return res.status(400).json({ success: false, error: "Eksik parametreler." });
+    if (!requestId) {
+      return res.status(400).json({ success: false, error: "Talep ID'si gereklidir." });
     }
 
     const db = mongoose.connection.db;
@@ -266,53 +266,55 @@ router.post("/complete-education", getAuthenticatedUser, async (req: any, res) =
       return res.status(404).json({ success: false, error: "Eğitim talebi bulunamadı." });
     }
 
-    // Get requester (student)
-    const requester = await usersDb.findOne({ id: requesterId });
-    if (!requester) {
-      return res.status(404).json({ success: false, error: "Eğitim talep eden kullanıcı bulunamadı." });
+    // Only mentor can complete education
+    if (educationRequest.mentorId !== req.userId) {
+      return res.status(403).json({ success: false, error: "Yalnızca eğitim veren bu işlemi yapabilir." });
     }
 
-    // Get mentor (current user)
     const mentor = req.user;
     const amount = TIME_CREDIT_PRICE_USD; // 1 time credit = $5
+    const participants = educationRequest.participants || [];
 
-    // Check if requester has enough balance
-    const requesterBalance = requester.wallet?.balance || 0;
-    if (requesterBalance < amount) {
-      return res.status(400).json({ 
-        success: false, 
-        error: `Kullanıcının cüzdanında yeterli bakiye yok. Gerekli: $${amount}, Mevcut: $${requesterBalance}` 
-      });
+    if (participants.length === 0) {
+      return res.status(400).json({ success: false, error: "Katılımcı yok. Eğitim tamamlanamaz." });
     }
 
-    // Deduct from requester's wallet
-    await usersDb.updateOne(
-      { id: requesterId },
-      { 
-        $inc: { "wallet.balance": -amount }
-      }
-    );
-
-    // Add to mentor's wallet
-    await usersDb.updateOne(
-      { id: req.userId },
-      { 
-        $inc: { 
-          "wallet.balance": amount,
-          "wallet.totalEarnings": amount,
-          "blueprintSettings.timeCredits": 1
-        }
-      }
-    );
-
-    // Create transactions for both users
+    // Check all participants have enough balance
     const transactionsDb = db.collection("transactions");
     const txId = `tx-edu-${uuidv4()}`;
+    const transactions: any[] = [];
+    let totalMentorEarnings = 0;
 
-    await transactionsDb.insertMany([
-      {
-        id: `${txId}-requester`,
-        userId: requesterId,
+    for (const participant of participants) {
+      const student = await usersDb.findOne({ id: participant.userId });
+      if (!student) {
+        console.warn(`Student ${participant.userId} not found`);
+        continue;
+      }
+
+      const studentBalance = student.wallet?.balance || 0;
+      if (studentBalance < amount) {
+        return res.status(400).json({
+          success: false,
+          error: `${student.fullName} cüzdanında yeterli bakiye yok. Gerekli: $${amount}, Mevcut: $${studentBalance}`
+        });
+      }
+    }
+
+    // Process payments for all participants
+    for (const participant of participants) {
+      // Deduct from student's wallet
+      await usersDb.updateOne(
+        { id: participant.userId },
+        {
+          $inc: { "wallet.balance": -amount }
+        }
+      );
+
+      // Create transaction for student
+      transactions.push({
+        id: `${txId}-${participant.userId}`,
+        userId: participant.userId,
         type: "education_payment",
         amount: -amount,
         currency: "USD",
@@ -322,27 +324,47 @@ router.post("/complete-education", getAuthenticatedUser, async (req: any, res) =
         mentorId: req.userId,
         mentorName: mentor.fullName,
         timestamp: new Date(),
-      },
+      });
+
+      totalMentorEarnings += amount;
+    }
+
+    // Add total to mentor's wallet once
+    await usersDb.updateOne(
+      { id: req.userId },
       {
-        id: `${txId}-mentor`,
-        userId: req.userId,
-        type: "education_earnings",
-        amount: amount,
-        currency: "USD",
-        status: "completed",
-        description: `${educationRequest.topic} eğitim geliri`,
-        reference: requestId,
-        studentId: requesterId,
-        studentName: requester.fullName,
-        timestamp: new Date(),
+        $inc: {
+          "wallet.balance": totalMentorEarnings,
+          "wallet.totalEarnings": totalMentorEarnings,
+          "blueprintSettings.timeCredits": 1
+        }
       }
-    ]);
+    );
+
+    // Create transaction for mentor
+    transactions.push({
+      id: `${txId}-mentor`,
+      userId: req.userId,
+      type: "education_earnings",
+      amount: totalMentorEarnings,
+      currency: "USD",
+      status: "completed",
+      description: `${educationRequest.topic} eğitimi (${participants.length} kişi) geliri`,
+      reference: requestId,
+      participantCount: participants.length,
+      timestamp: new Date(),
+    });
+
+    // Insert all transactions
+    if (transactions.length > 0) {
+      await transactionsDb.insertMany(transactions);
+    }
 
     // Update request status
     await requestsDb.updateOne(
       { id: requestId },
-      { 
-        $set: { 
+      {
+        $set: {
           status: "completed",
           completedAt: new Date(),
           mentorId: req.userId,
@@ -350,11 +372,12 @@ router.post("/complete-education", getAuthenticatedUser, async (req: any, res) =
       }
     );
 
-    res.json({ 
-      success: true, 
-      message: "Eğitim tamamlandı ve ödeme yapıldı.",
-      mentorBalance: requesterBalance - amount,
-      mentorEarnings: amount,
+    res.json({
+      success: true,
+      message: `Eğitim tamamlandı. ${participants.length} kişiden $${totalMentorEarnings} toplandı.`,
+      participantCount: participants.length,
+      totalEarnings: totalMentorEarnings,
+      mentorCreditsEarned: 1,
     });
   } catch (error) {
     console.error("Error completing education:", error);
