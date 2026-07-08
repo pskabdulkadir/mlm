@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import { useProducts } from "@/contexts/ProductContext";
 import { ShoppingCart as ShoppingCartModal } from "@/components/ShoppingCart";
 import {
   Card,
@@ -68,10 +69,9 @@ const ProductsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { products, loading } = useProducts();
 
-  const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
@@ -83,48 +83,8 @@ const ProductsPage: React.FC = () => {
   const referralCode = searchParams.get('ref') || 'ak0000001';
 
   useEffect(() => {
-    loadProducts();
-
-    // Auto-refresh products every 5 seconds for real-time updates
-    const refreshInterval = setInterval(() => {
-      loadProducts();
-    }, 5000);
-
-    return () => clearInterval(refreshInterval);
-  }, []);
-
-  useEffect(() => {
     filterAndSortProducts();
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
-
-  const loadProducts = async () => {
-    try {
-      const response = await fetch("/api/products");
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Response is not JSON");
-      }
-
-      const data = await response.json();
-
-      if (data.success && Array.isArray(data.products)) {
-        setProducts(data.products);
-      } else {
-        console.error("API returned no products or failed:", data);
-        setProducts([]);
-      }
-    } catch (error) {
-      console.error("Error loading products:", error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filterAndSortProducts = () => {
     let filtered = [...products];

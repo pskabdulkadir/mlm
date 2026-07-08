@@ -10,6 +10,7 @@ import React, { Suspense } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingScreen from "@/components/LoadingScreen";
 import { CartProvider } from "@/contexts/CartContext";
+import { ProductProvider } from "@/contexts/ProductContext";
 import Index from "./pages/Index";
 import Sistem from "./pages/Sistem";
 import ManeviPanel from "./pages/ManeviPanel";
@@ -44,8 +45,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <TooltipProvider>
+    <ProductProvider>
+      <CartProvider>
+        <TooltipProvider>
       <Toaster />
       <Sonner />
       <ErrorBoundary>
@@ -90,8 +92,9 @@ const App = () => (
           </SystemUpdateGuard>
         </Suspense>
       </ErrorBoundary>
-      </TooltipProvider>
-    </CartProvider>
+        </TooltipProvider>
+      </CartProvider>
+    </ProductProvider>
   </QueryClientProvider>
 );
 
