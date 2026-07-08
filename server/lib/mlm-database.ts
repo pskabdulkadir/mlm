@@ -607,13 +607,8 @@ export const mlmDb = {
         };
       }
 
-      // Image URL validasyonu
-      if (!data.image.startsWith('http')) {
-        return {
-          success: false,
-          error: "Ürün resmi geçerli bir URL olmalıdır (http ile başlamalı)"
-        };
-      }
+      // Image can be URL or base64 data - no validation needed
+      // Supports: http URLs, data:image/png;base64,..., etc.
 
       const product = {
         id: "prod-" + Date.now(),
@@ -656,13 +651,8 @@ export const mlmDb = {
         };
       }
 
-      // Image URL validasyonu
-      if (data.image && !data.image.startsWith('http')) {
-        return {
-          success: false,
-          error: "Ürün resmi geçerli bir URL olmalıdır (http ile başlamalı)"
-        };
-      }
+      // Image can be URL or base64 data - no validation needed
+      // Supports: http URLs, data:image/png;base64,..., etc.
 
       Object.assign(product, data, {
         updatedAt: new Date().toISOString()
