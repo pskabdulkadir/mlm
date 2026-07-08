@@ -39,17 +39,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Mentor {
-  id: string;
-  name: string;
-  level: string;
-  rating: number;
-  topic: string;
-  cost: number; // Zaman kredisi
-  availability: "available" | "busy";
-  avatar?: string;
-}
-
 interface EducationRequest {
   id: string;
   requesterId: string;
@@ -75,42 +64,11 @@ export default function TimeBankEducationPanel({
   onCreditsUpdate,
 }: TimeBankEducationPanelProps) {
   const { toast } = useToast();
-  const [timeCredits, setTimeCredits] = useState(user?.blueprintSettings?.timeCredits || user?.timeCredits || 1);
+  const [timeCredits, setTimeCredits] = useState(user?.blueprintSettings?.timeCredits || user?.timeCredits || 0);
   const [walletBalance, setWalletBalance] = useState(user?.wallet?.balance || 0);
-  const [mentors, setMentors] = useState<Mentor[]>([
-    {
-      id: "mentor-1",
-      name: "Ahmet Yıldırım",
-      level: "Monoline Lideri",
-      rating: 4.9,
-      topic: "Manevi Satış Stratejileri",
-      cost: 1,
-      availability: "available",
-    },
-    {
-      id: "mentor-2",
-      name: "Esra Demir",
-      level: "Kamil Seviye Lider",
-      rating: 5.0,
-      topic: "Alt Ağaç Organizasyon Yönetimi",
-      cost: 2,
-      availability: "available",
-    },
-    {
-      id: "mentor-3",
-      name: "Selin Kaya",
-      level: "Mürşid Seviye Lider",
-      rating: 4.8,
-      topic: "Siyer-i Nebi ile Ticari Ahlak",
-      cost: 1,
-      availability: "available",
-    },
-  ]);
 
   const [educationRequests, setEducationRequests] = useState<EducationRequest[]>([]);
-  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [selectedEducationRequest, setSelectedEducationRequest] = useState<EducationRequest | null>(null);
-  const [showReservation, setShowReservation] = useState(false);
   const [showEducationRequests, setShowEducationRequests] = useState(false);
   const [showOfferEducation, setShowOfferEducation] = useState(false);
   const [showLiveSession, setShowLiveSession] = useState(false);
@@ -175,71 +133,6 @@ export default function TimeBankEducationPanel({
     };
   }, [participantRefreshInterval]);
 
-  // Mentor seansı rezerve et
-  const handleReserveMentorSession = async (mentor: Mentor) => {
-    if (timeCredits < mentor.cost) {
-      toast({
-        title: "Yetersiz Kredi",
-        description: `Bu seansa ${mentor.cost} kredi gerekiyor. Şu an ${timeCredits} krediniz var.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        toast({
-          title: "Hata",
-          description: "Lütfen yeniden giriş yapınız.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const res = await fetch("/api/timebank/reserve-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          mentorId: mentor.id,
-          mentorName: mentor.name,
-          topic: mentor.topic,
-          cost: mentor.cost,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setTimeCredits((prev) => prev - mentor.cost);
-        if (onCreditsUpdate) onCreditsUpdate(timeCredits - mentor.cost);
-        setShowReservation(false);
-        setSelectedMentor(null);
-        toast({
-          title: "Seansa Başarıyla Katıldınız ✅",
-          description: `${mentor.name} ile seans rezerve edildi. Zoom linki e-posta adresinize gönderilecektir.`,
-        });
-      } else {
-        toast({
-          title: "Hata",
-          description: data.error || "Seansa katılırken hata oluştu.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error reserving session:", error);
-      toast({
-        title: "Hata",
-        description: "Seansa katılırken hata oluştu. Lütfen daha sonra tekrar deneyin.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Load participants for a session (live update)
   const loadSessionParticipants = async (requestId: string) => {
@@ -385,71 +278,19 @@ export default function TimeBankEducationPanel({
             </div>
             <div className="text-right">
               <p className="text-xs text-purple-300 mb-2">
-                Uzmanlığı ortak değer birimi yapıyoruz!
+                1 saatlik eğitim sunarak +1 Zaman Kredisi ve +$5 kazanın
               </p>
               <Button
                 onClick={() => setShowOfferEducation(true)}
                 className="bg-purple-600 hover:bg-purple-700"
               >
-                🎤 Eğitim Sun
+                🎤 Eğitim Talep Oluştur
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Mentorluğu Kullan */}
-      <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500" />
-            Aktif Alabileceğiniz Mentorluk Eğitimleri
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {mentors.map((mentor) => (
-            <div
-              key={mentor.id}
-              className="bg-slate-950 border border-slate-800 p-4 rounded-lg hover:border-purple-600/50 transition"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-bold text-white">{mentor.name}</h4>
-                  <p className="text-xs text-slate-400">{mentor.level}</p>
-                  <p className="text-sm text-purple-300 font-semibold mt-2">
-                    {mentor.topic}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-sm text-white font-bold">
-                    {mentor.rating}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm font-bold text-purple-300">
-                    {mentor.cost} Zaman Kredisi ({timeCredits} mevcut)
-                  </span>
-                </div>
-                <Button
-                  onClick={() => {
-                    setSelectedMentor(mentor);
-                    setShowReservation(true);
-                  }}
-                  disabled={timeCredits < mentor.cost || isLoading}
-                  className="bg-purple-600 hover:bg-purple-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "İşleniyor..." : "Seansı Rezerve Et"}
-                </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Eğitim Talepleri (Mentor Görünümü) ve Eğitim Sunumları (Student Görünümü) */}
       <Dialog open={showEducationRequests} onOpenChange={setShowEducationRequests}>
@@ -668,15 +509,15 @@ export default function TimeBankEducationPanel({
         </DialogContent>
       </Dialog>
 
-      {/* Eğitim Sun */}
+      {/* Eğitim Talep Oluştur */}
       <Dialog open={showOfferEducation} onOpenChange={setShowOfferEducation}>
         <DialogContent className="max-w-md bg-slate-950 border-slate-800">
           <DialogHeader>
             <DialogTitle className="text-white">
-              🎤 Sisteme 1 Saatlik Eğitim Sun
+              🎤 Eğitim Talep Oluştur
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Siz de bir saat eğitim sunarak +1 Zaman Kredisi ve $5 kazanın
+              Belirli bir konuda eğitim almak istiyorsanız, buradan talep oluşturun. Sistem içindeki mentorlar talebinizi görebilecek ve eğitim sunabilecekler.
             </DialogDescription>
           </DialogHeader>
 
@@ -800,7 +641,7 @@ export default function TimeBankEducationPanel({
               disabled={isLoading}
               className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "İşleniyor..." : "Eğitim Sunmaya Hazırım"}
+              {isLoading ? "İşleniyor..." : "Talep Oluştur"}
             </Button>
           </div>
         </DialogContent>
