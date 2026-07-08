@@ -470,8 +470,10 @@ export default function TimeBankEducationPanel({
 
             {/* Mentor Tab - Eğitim Talepleri */}
             <TabsContent value="mentor" className="space-y-4">
-              {educationRequests.length > 0 ? (
-                educationRequests.map((request) => (
+              {educationRequests.filter(r => r.requesterId !== user?.id && r.status === "pending").length > 0 ? (
+                educationRequests
+                  .filter(r => r.requesterId !== user?.id && r.status === "pending")
+                  .map((request) => (
                   <div
                     key={request.id}
                     className="bg-slate-900 border border-slate-800 p-4 rounded-lg hover:border-purple-600/50 transition"
@@ -522,20 +524,24 @@ export default function TimeBankEducationPanel({
               ) : (
                 <div className="text-center py-8">
                   <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                  <p className="text-slate-400">Şu an eğitim talebi yok</p>
+                  <p className="text-slate-400">
+                    {educationRequests.length === 0
+                      ? "Şu an eğitim talebi yok"
+                      : "Beklemiş olan eğitim talebi bulunmamaktadır"}
+                  </p>
                 </div>
               )}
             </TabsContent>
 
             {/* Student Tab - Eğitim Talebi Oluştur */}
             <TabsContent value="student" className="space-y-4">
-              <div className="bg-slate-900 border border-emerald-600/30 p-4 rounded-lg">
-                <p className="text-sm text-emerald-300 mb-3">
-                  💡 Diğer üyelerin sunduğu eğitime katılabilirsiniz. Eğitim alındıktan sonra cüzdanınızdan $5 ödeme yapılacaktır.
+              <div className="bg-slate-900 border border-blue-600/30 p-4 rounded-lg">
+                <p className="text-sm text-blue-300 mb-3">
+                  💡 Belirli bir konu hakkında eğitim almak istiyorsanız, buradan talep oluşturun. Sistem içindeki mentorlar talebinizi görebilecek ve eğitim sunabilecekler. Eğitim aldıktan sonra cüzdanınızdan $5 ödeme yapılacaktır.
                 </p>
                 <Button
                   onClick={() => setShowOfferEducation(true)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   + Eğitim Talebi Oluştur
                 </Button>
@@ -761,13 +767,17 @@ export default function TimeBankEducationPanel({
 
                   const data = await res.json();
                   if (data.success) {
-                    setOfferTopic("");
-                    setOfferDescription("");
-                    setShowOfferEducation(false);
                     toast({
                       title: "Eğitim Talebi Oluşturuldu ✅",
                       description: "Eğitim talebiniz sisteme eklenmiştir. Mentorlar tarafından kabul edilmeyi bekliyor.",
                     });
+                    // Temizle ve kapat
+                    setTimeout(() => {
+                      setOfferTopic("");
+                      setOfferDescription("");
+                      setShowOfferEducation(false);
+                    }, 500);
+                    // Listeyi güncelle
                     loadEducationRequests();
                   } else {
                     toast({

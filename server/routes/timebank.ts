@@ -214,6 +214,17 @@ router.post("/join-session", getAuthenticatedUser, async (req: any, res) => {
       return res.status(404).json({ success: false, error: "Eğitim talebi bulunamadı." });
     }
 
+    // Mentor kendi eğitimine katılamaz
+    if (educationRequest.mentorId === req.userId) {
+      return res.status(403).json({ success: false, error: "Mentor eğitime katılamaz." });
+    }
+
+    // Aynı kişi iki kez katılamaz
+    const alreadyJoined = educationRequest.participants?.some((p: any) => p.userId === req.userId);
+    if (alreadyJoined) {
+      return res.status(400).json({ success: false, error: "Zaten bu eğitime katıldınız." });
+    }
+
     if (educationRequest.status !== "in_progress") {
       return res.status(400).json({ success: false, error: "Eğitim henüz başlamadı." });
     }
