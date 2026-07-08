@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKN GROUP - Yeni Üye Kariyer Yolculuğu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .presentation-container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            padding: 60px 80px;
+            min-height: 100vh;
+            animation: fadeIn 0.5s ease-in;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        p, li {
+            font-size: 1.2em;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 40px;
+        }
+
+        .subtitle {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 5px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        .code-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: #333;
+            color: white;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            font-size: 1.1em;
+            color: white;
+        }
+
+        .slide-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 15px;
+            background: white;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-list li:before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-right: 10px;
+        }
+
+        .emotion-icon {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .career-timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin: 25px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-dot {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-right: 20px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .timeline-content h3 {
+            margin-top: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+            font-weight: bold;
+        }
+
+        .bg-success { background: #28a745; }
+        .bg-info { background: #17a2b8; }
+        .bg-warning { background: #ffc107; color: black; }
+        .bg-danger { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <div class="slide active">
+            <div class="slide-title">
+                <h1>🚀 AKN GROUP</h1>
+                <p class="subtitle">Yeni Üye Kariyer Yolculuğu</p>
+                <p style="font-size: 1.3em; color: #666; margin-top: 30px;">Maddi Başarı ve Ruhani Gelişim Birleştirme Platformu</p>
+            </div>
+            <div style="text-align: center; margin-top: 60px;">
+                <p style="font-size: 1.1em; color: #764ba2;">Güncellenmiş: 2024</p>
+                <p style="color: #666;">Bu sunum, yeni bir üyenin tüm kariyer yolculuğunu kapsamlı şekilde açıklamaktadır.</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Sistem Genel Bakış -->
+        <div class="slide">
+            <h2>📋 Sistem Genel Bakış</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Ne Sunuyor?</h3>
+                    <ul class="feature-list">
+                        <li>11 Aşamalı Kariyer Sistemi</li>
+                        <li>Çok Kanallı Kazanç Yapısı</li>
+                        <li>Monoline Network (Tek Hat MLM)</li>
+                        <li>E-Cüzdan & Para Yönetimi</li>
+                        <li>Eğitim & Gelişim Kaynakları</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Üç Ana Panel</h3>
+                    <ul class="feature-list">
+                        <li>🕌 Manevi Panel (İslami)</li>
+                        <li>🏃 Zahiri Panel (Fiziksel)</li>
+                        <li>💎 Batini Panel (Esoterik)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">11 Seviyeleri</div>
+                <div class="stat-label">Nefs-i Emmare'den İnsan-ı Kamil'e Ruhani Yolculuk</div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Yeni Üyelik Süreci -->
+        <div class="slide">
+            <h2>📝 Yeni Üyelik Süreci</h2>
+            <div class="career-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>Adım 1: Kayıt (Gün 1)</h3>
+                        <p><strong>Gerekli Bilgiler:</strong> Ad-Soyadı, E-posta, Telefon, Şifre</p>
+                        <p><strong>Sistem Tarafından Oluşturulan:</strong> Benzersiz Üye ID, Referral Code</p>
+                        <div class="stat-box">
+                            <p>İlk Durum: <span class="badge">Passive</span> <span class="badge bg-warning">KYC Pending</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>Adım 2: Aktivasyon (Gün 1-5)</h3>
+                        <p><strong>Seçenek 1:</strong> Minimum $100 ürün satın alma (5 birim)</p>
+                        <p><strong>Seçenek 2:</strong> $200 aktivasyon ücreti ödeme</p>
+                        <div class="stat-box">
+                            <p>Durumu: <span class="badge bg-success">Active ✓</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>Adım 3: İlk Kazanç (Gün 5-10)</h3>
+                        <p>İlk satışlardan kazanç almaya başlama</p>
+                        <p><strong>İlk Cüzdan Durumu:</strong> $0 - İlk işlemler HELD'de kalabilir</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Kariyer Seviyeleri -->
+        <div class="slide">
+            <h2>🏆 11 Kariyer Seviyeleri</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Seviye</th>
+                        <th>Adı</th>
+                        <th>Gerekli USD</th>
+                        <th>Doğrudan Referans</th>
+                        <th>Bonus %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0</td>
+                        <td>Nefs-i Emmare</td>
+                        <td>$0</td>
+                        <td>0</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td><strong>Nefs-i Mülhime</strong></td>
+                        <td>$500</td>
+                        <td>2</td>
+                        <td>3%</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Nefs-i Mutmainne</td>
+                        <td>$1,500</td>
+                        <td>3</td>
+                        <td>4%</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Nefs-i Radiye</td>
+                        <td>$3,500</td>
+                        <td>4</td>
+                        <td>5%</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Nefs-i Safiyye</td>
+                        <td>$15,000</td>
+                        <td>6</td>
+                        <td>7%</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Nefs-i İnsan-ı Kamil</td>
+                        <td>$500,000</td>
+                        <td>20</td>
+                        <td>20%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 20px; color: #666;">
+                <strong>Not:</strong> Her seviyeye gelmek için <span class="highlight">BOTH</span> şartı karşılamalı:
+                <br>Gerekli USD TUTARINI ve Doğrudan Referans SAYISINI
+            </p>
+        </div>
+
+        <!-- Slide 5: Aylık Hacim Gereksinimleri -->
+        <div class="slide">
+            <h2>💰 Aylık Hacim Gereksinimleri</h2>
+            <div class="stat-box">
+                <p><span class="emotion-icon">📊</span> <strong>Kişisel Aylık Minimum:</strong> <span class="highlight">$100 USD</span></p>
+                <p style="margin-top: 15px; font-size: 1em;">Bunu yapmazsan, o ay kazanç <span class="badge bg-warning">HELD</span> kalır!</p>
+            </div>
+
+            <h3>HELD (Beklemede) Durumundan Çıkmak</h3>
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p><strong>✓ Sonraki Ayda $100 Yap</strong></p>
+                    <p style="font-size: 0.95em;">Otomatik PAID olur</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>✓ KYC Onayı Onayla</strong></p>
+                    <p style="font-size: 0.95em;">30 gün sonra PAID olur</p>
+                </div>
+            </div>
+
+            <div class="stat-box" style="background: #fff3cd; border-left-color: #ffc107; margin-top: 30px;">
+                <p><strong>⚠️ Uyarı:</strong> Eğer 3 ay üst üste $100 yapmazsan, hesabın "Inactive" olarak işaretlenebilir!</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: Kazanç Kanalları - Sponsor Bonusu -->
+        <div class="slide">
+            <h2>💵 Kazanç Kanal 1: Sponsor Bonusu</h2>
+            <div class="stat-box">
+                <p><strong>Ne:</strong> Sponsorladığın kişilerin satın aldıkları her ürün</p>
+                <p><strong>Oran:</strong> %25 + Kariyer Seviye Çarpanı</p>
+            </div>
+
+            <h3>Örnek Senaryo</h3>
+            <div class="code-box">
+Senin Referansın (Ahmet) → $100 ürün satın alıyor
+         ↓
+Ahmet'in 25%'i ($25) SENIN cüzdanına giriyor
+         ↓
+Ahmet'in Sponsor'u (Sponsor) 25%'i ($25) onun cüzdanına giriyor
+         ↓
+Sonra Derinlik seviyeleri de oranlarını alır
+            </div>
+
+            <div class="stat-box" style="border-left-color: #28a745;">
+                <p><strong>✓ Avantajlar:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>İlişki: <span class="highlight">Ömür boyu</span> (hiç kırılmaz)</li>
+                    <li>Kondisyon: Aktif durumda olmalısın</li>
+                    <li>İşlem Süresi: 24 saat içinde</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 7: Kazanç Kanal 2: Derinlik Komisyonu (Unilevel) -->
+        <div class="slide">
+            <h2>📈 Kazanç Kanal 2: Derinlik Havuzu (Unilevel)</h2>
+            <p>Sponsorladığın kişilerin <strong>ekibi</strong> (ağacı) aşağıdan 7 seviye boyunca kazanma</p>
+
+            <h3>7 Seviye Derinlik Oranları ($100 Ürün İçin)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Seviye</th>
+                        <th>Yüzde</th>
+                        <th>$100 Ürün</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>1. Seviye (Doğrudan)</strong></td>
+                        <td>5%</td>
+                        <td>$5.00</td>
+                    </tr>
+                    <tr>
+                        <td>2. Seviye</td>
+                        <td>3%</td>
+                        <td>$3.00</td>
+                    </tr>
+                    <tr>
+                        <td>3. Seviye</td>
+                        <td>2%</td>
+                        <td>$2.00</td>
+                    </tr>
+                    <tr>
+                        <td>4. Seviye</td>
+                        <td>2%</td>
+                        <td>$2.00</td>
+                    </tr>
+                    <tr>
+                        <td>5. Seviye</td>
+                        <td>1%</td>
+                        <td>$1.00</td>
+                    </tr>
+                    <tr>
+                        <td>6. Seviye</td>
+                        <td>1%</td>
+                        <td>$1.00</td>
+                    </tr>
+                    <tr>
+                        <td>7. Seviye</td>
+                        <td>1%</td>
+                        <td>$1.00</td>
+                    </tr>
+                    <tr style="background: #f0f0f0; font-weight: bold;">
+                        <td>TOPLAM</td>
+                        <td>15%</td>
+                        <td>$15.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 30px;">Monoline Derinlik Limiti (Kariyer Seviyesine Bağlı)</h3>
+            <p><strong>Emmare (Seviye 0):</strong> Sadece 1 seviye (doğrudan)</p>
+            <p><strong>Mülhime (Seviye 1):</strong> 10 seviye aşağıya kazanırsın</p>
+            <p><strong>İnsan-ı Kamil (Seviye 10):</strong> <span class="highlight">SONSUZ derinlik</span></p>
+        </div>
+
+        <!-- Slide 8: Kazanç Kanal 3: Kariyer Bonusu -->
+        <div class="slide">
+            <h2>🎯 Kazanç Kanal 3: Kariyer Bonusu</h2>
+            <p>Kariyer seviyesine çıktığında tüm satışlara <strong>ekstra bonus</strong></p>
+
+            <h3>Kariyer Seviyesi = Ekstra Bonus</h3>
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p><strong>Emmare (0):</strong> 0% ekstra</p>
+                    <p style="font-size: 0.95em; margin-top: 10px;">Hiç bonus yok</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>Mülhime (1):</strong> +3% ekstra</p>
+                    <p style="font-size: 0.95em; margin-top: 10px;">$100 satış = $25 sponsor + $3 kariyer = <strong>$28</strong></p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>Radiye (3):</strong> +5% ekstra</p>
+                    <p style="font-size: 0.95em; margin-top: 10px;">$100 satış = $25 sponsor + $5 kariyer = <strong>$30</strong></p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>İnsan-ı Kamil (10):</strong> +20% ekstra</p>
+                    <p style="font-size: 0.95em; margin-top: 10px;">$100 satış = $25 sponsor + $20 kariyer = <strong>$45</strong></p>
+                </div>
+            </div>
+
+            <div class="stat-box" style="border-left-color: #ffc107; margin-top: 20px;">
+                <p><strong>⚠️ Şart:</strong> Aylık $100 USD hacim yaparsan bonus PAID olur. Yapmazsan HELD kalır.</p>
+            </div>
+        </div>
+
+        <!-- Slide 9: Kazanç Kanal 3 & 4: Derinlik & Havuz -->
+        <div class="slide">
+            <h2>📊 İrfan Dağılım Sistemi - Tamamen Şeffaf</h2>
+            <p style="font-size: 1.2em; margin-bottom: 30px; text-align: center;"><strong>Her $100 Ürün Satışında Dağılım</strong></p>
+
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p style="font-size: 1.3em; color: #667eea;"><strong>$25 (25%)</strong></p>
+                    <p><strong>Sponsor Bonusu</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Direkt sponsor otomatik kazanır</p>
+                </div>
+                <div class="stat-box">
+                    <p style="font-size: 1.3em; color: #06b6d4;"><strong>$15 (15%)</strong></p>
+                    <p><strong>Derinlik Havuzu</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">7 seviye unilevel komisyonu</p>
+                </div>
+                <div class="stat-box">
+                    <p style="font-size: 1.3em; color: #a855f7;"><strong>$10 (10%)</strong></p>
+                    <p><strong>Monoline Havuzu</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Tüm aktif üyeler arasında dağıtım</p>
+                </div>
+                <div class="stat-box">
+                    <p style="font-size: 1.3em; color: #10b981;"><strong>$50 (50%)</strong></p>
+                    <p><strong>Sistem Fonu</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Şirket operasyonları & gelişim</p>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 30px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left-color: #f59e0b;">
+                <p style="font-size: 1.1em;"><strong>⚡ Anında İşlem</strong></p>
+                <p>Satış anında otomatik dağıtım gerçekleşir</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: Üye Paneli Özellikleri -->
+        <div class="slide">
+            <h2>🎮 Üye Panelinin 5 Ana Sekmesi</h2>
+
+            <div style="margin-top: 40px;">
+                <div class="timeline-item" style="margin: 20px 0;">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <h3>1️⃣ Kontrol Paneli (Dashboard)</h3>
+                        <p>Bakiye, Kazanç, Kariyer, Network özeti - Hepsi bir yerde!</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item" style="margin: 20px 0;">
+                    <div class="timeline-dot" style="background: #17a2b8;"></div>
+                    <div class="timeline-content">
+                        <h3>2️⃣ Ağım (Network Tree)</h3>
+                        <p>Sponsorladığın tüm kişileri görmek ve yönetmek</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item" style="margin: 20px 0;">
+                    <div class="timeline-dot" style="background: #28a745;"></div>
+                    <div class="timeline-content">
+                        <h3>3️⃣ Kazançlar (Wallet)</h3>
+                        <p>Tüm kazanç kanalları, işlemler, bakiye özeti</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item" style="margin: 20px 0;">
+                    <div class="timeline-dot" style="background: #ffc107; color: black;"></div>
+                    <div class="timeline-content">
+                        <h3>4️⃣ Eğitim & Kaynakları</h3>
+                        <p>Ürün kataloğu, Videolar, Broadcast, Kitaplar</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item" style="margin: 20px 0;">
+                    <div class="timeline-dot" style="background: #dc3545;"></div>
+                    <div class="timeline-content">
+                        <h3>5️⃣ Ayarlar (Settings)</h3>
+                        <p>Profil, Güvenlik, Ödeme yöntemleri, Depo ayarları</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Üç Özel Panel - Manevi -->
+        <div class="slide">
+            <h2>🕌 Manevi Panel</h2>
+            <p style="font-size: 1.3em; margin-bottom: 30px;"><strong>Ruhani Gelişim & İslami Bilgiler</strong></p>
+
+            <ul class="feature-list">
+                <li><strong>📿 Namaz Zamanları</strong> - Konuma göre otomatik güncellenme</li>
+                <li><strong>🌙 Esma-ül Hüsna</strong> - 99 Tanrı Adı (Okunuş, Anlamı, Yararı)</li>
+                <li><strong>📖 Quran Sureleri</strong> - Seçili sureler ve tercemesi</li>
+                <li><strong>💫 Dualar Kitabı</strong> - Özel ve genel dualar rehberi</li>
+                <li><strong>📅 Hicri Takvim</strong> - İslami tarihler, bayramlar, özel günler</li>
+            </ul>
+
+            <h3 style="margin-top: 40px;">Etkileşim Özellikleri</h3>
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p><strong>Dua Talepleri</strong><br>Topluluk senin için dua yapar</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>Hatim Takibi</strong><br>Quran okumayı tamamlamak</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Zahiri Panel -->
+        <div class="slide">
+            <h2>🏃 Zahiri Panel</h2>
+            <p style="font-size: 1.3em; margin-bottom: 30px;"><strong>Fiziksel Sağlık & Pratik Refahı</strong></p>
+
+            <ul class="feature-list">
+                <li><strong>🌬️ Nefes Egzersizleri</strong> - 4-4-4-4 Prana Tekniği (Tamamlanan döngü sayacı)</li>
+                <li><strong>🧘 Yoga Hareketleri</strong> - Video rehberliği ile adım adım</li>
+                <li><strong>🍎 Beslenme Rehberi</strong> - Organik ve doğal beslenme</li>
+                <li><strong>🏃 Egzersiz Programları</strong> - Haftalık fitness rutini</li>
+                <li><strong>🌿 Doğal Remediler</strong> - Bitkisel çözümler ve tips</li>
+            </ul>
+
+            <h3 style="margin-top: 40px;">Etkinlikler</h3>
+            <div class="stat-box">
+                <p>Canlı yoga seansları, beyin sağlığı seminerleri, fitness yarışmaları</p>
+            </div>
+        </div>
+
+        <!-- Slide 13: Batini Panel -->
+        <div class="slide">
+            <h2>💎 Batini Panel</h2>
+            <p style="font-size: 1.3em; margin-bottom: 30px;"><strong>Kuantum İyileştirme & Enerji Çalışması</strong></p>
+
+            <h3>🎵 25+ Solfeggio Frekansları</h3>
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p><strong>174 Hz</strong><br>Güven & Temel Güvenlik</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>528 Hz</strong><br>DNA Onarımı (Mucize)</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>963 Hz</strong><br>Tanrı Frekansı</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>7.83 Hz</strong><br>Schumann Rezonansı</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px;">Diğer Özellikleri</h3>
+            <ul class="feature-list">
+                <li><strong>🧬 DNA Haritası</strong> - Gen deseninin görselleştirilmesi</li>
+                <li><strong>🌀 Çakra Dengeleme</strong> - 7 çakranın uyumlandırılması</li>
+                <li><strong>💎 Kuantum Dönüşümü</strong> - 21 günlük program</li>
+                <li><strong>🔮 Biofotonik Tarama</strong> - Enerji alanı analizi</li>
+            </ul>
+        </div>
+
+        <!-- Slide 14: 30 Günlük Yol Haritası -->
+        <div class="slide">
+            <h2>🗓️ Yeni Üyenin 30 Günlük Hedefleri</h2>
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background: #dc3545;"></div>
+                <div class="timeline-content">
+                    <h3>Hedef 1: Aktivasyon ✓ (Gün 1-5)</h3>
+                    <p>$100 ürün satın almak veya $200 aktivasyon ücreti</p>
+                    <p><strong>Sonuç:</strong> <span class="badge bg-success">Aktif Üye</span></p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background: #ffc107;"></div>
+                <div class="timeline-content">
+                    <h3>Hedef 2: İlk Referans (Gün 15-30)</h3>
+                    <p>İlk arkadaş veya aile üyesini davet etmek</p>
+                    <p><strong>Sonuç:</strong> <span class="badge">İlk Sponsor Bonusu</span> ($25-50)</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background: #28a745;"></div>
+                <div class="timeline-content">
+                    <h3>Hedef 3: Aktiflik Sınırı (Gün 30)</h3>
+                    <p>$100 USD kişisel/ekip hacmi yapmak</p>
+                    <p><strong>Sonuç:</strong> <span class="badge bg-success">PAID Kazanç</span> + Havuz Geliri Unlock</p>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 30px; border-left-color: #17a2b8;">
+                <p><strong>📊 Ay Sonu Durumu:</strong> Bakiye $100-300, Kariyer: Nefs-i Emmare, İlk Referans: 1-2</p>
+            </div>
+        </div>
+
+        <!-- Slide 15: 90 Günlük Hedefler -->
+        <div class="slide">
+            <h2>📈 90 Günlük Hedef Haritası</h2>
+
+            <div class="grid-3">
+                <div class="stat-box">
+                    <h3 style="margin-top: 0;">Hafta 1-4<br>(Gün 0-30)</h3>
+                    <p>✓ Aktivasyon</p>
+                    <p>✓ İlk Referans</p>
+                    <p><strong style="color: #667eea;">Kazanç:</strong> $100-300</p>
+                    <p><strong style="color: #667eea;">Kariyer:</strong> Emmare</p>
+                </div>
+
+                <div class="stat-box">
+                    <h3 style="margin-top: 0;">Hafta 5-8<br>(Gün 30-60)</h3>
+                    <p>✓ 2-3 Referans</p>
+                    <p>✓ Mülhime Hedefine</p>
+                    <p><strong style="color: #667eea;">Kazanç:</strong> $300-1,000</p>
+                    <p><strong style="color: #667eea;">Kariyer:</strong> Mülhime</p>
+                </div>
+
+                <div class="stat-box">
+                    <h3 style="margin-top: 0;">Hafta 9-13<br>(Gün 60-90)</h3>
+                    <p>✓ 4 Referans+</p>
+                    <p>✓ 50+ Ekip Üyesi</p>
+                    <p><strong style="color: #667eea;">Kazanç:</strong> $1,000-3,000</p>
+                    <p><strong style="color: #667eea;">Kariyer:</strong> Mutmainne</p>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 30px; background: linear-gradient(135deg, #e0f7fa 0%, #b2dfdb 100%); border-left: 5px solid #17a2b8;">
+                <p style="font-size: 1.1em;"><strong>🎯 90 Gün Sonra İdeal Durum:</strong></p>
+                <p>✓ 3-4 Kariyer Atlaması | ✓ 15+ Doğrudan Referans | ✓ $3,000-5,000 Aylık Kazanç | ✓ 200+ Kişi Ağ</p>
+            </div>
+        </div>
+
+        <!-- Slide 16: 1 Yıllık Başarı -->
+        <div class="slide">
+            <h2>🎯 1 Yılda Başarılı Üyenin Profili</h2>
+
+            <div class="grid-2">
+                <div>
+                    <h3>Network Metrikleri</h3>
+                    <ul class="feature-list">
+                        <li>Doğrudan Referans: 15-30</li>
+                        <li>Toplam Ekip: 200-500</li>
+                        <li>Aktif Üyeler: 150-400</li>
+                        <li>Monoline Derinliği: 50-100</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3>Finansal Başarı</h3>
+                    <ul class="feature-list">
+                        <li>Aylık Ortalama: $2,000-5,000</li>
+                        <li>Yıllık Toplam: $24,000-60,000</li>
+                        <li>Cüzdan Bakiyesi: $5,000-20,000</li>
+                        <li>Kariyer Seviyeleri: 3-4 atlanma</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">Kariyer Seviyeleri Progresyonu</h3>
+            <div class="code-box">
+Gün 1      → Nefs-i Emmare (Seviye 0)
+Gün 30-45  → Nefs-i Mülhime (Seviye 1) - Monoline: 1→10
+Gün 60     → Nefs-i Mutmainne (Seviye 2) - Monoline: 10→20
+Gün 120    → Nefs-i Radiye (Seviye 3) - Monoline: 20→40
+Gün 200+   → Hedef: Nefs-i Mardiyye (Seviye 4) - Monoline: 40→60
+            </div>
+        </div>
+
+        <!-- Slide 17: Sistem Ödülleri -->
+        <div class="slide">
+            <h2>🏆 Sistem Ödülleri & İnsentifler</h2>
+
+            <h3>Aylık İncentifler</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hedef</th>
+                        <th>Ödül</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Aylık $500 satış</td>
+                        <td><span class="badge">$50 Bonus</span></td>
+                    </tr>
+                    <tr>
+                        <td>Aylık $1,000 satış</td>
+                        <td><span class="badge">$150 Bonus</span></td>
+                    </tr>
+                    <tr>
+                        <td>5+ referans</td>
+                        <td><span class="badge">$200 Bonus</span></td>
+                    </tr>
+                    <tr>
+                        <td>Ekip 100+</td>
+                        <td><span class="badge">$500 Bonus</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 30px;">Kariyer Seviyesi Atlaması Ödülü</h3>
+            <div class="grid-2">
+                <div class="stat-box">
+                    <p><strong>Mülhime:</strong> $500 One-time</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>Mutmainne:</strong> $1,000 One-time</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>Safiyye:</strong> $10,000 One-time</p>
+                </div>
+                <div class="stat-box">
+                    <p><strong>İnsan-ı Kamil:</strong> $100,000+ One-time</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Kazanç Durumları -->
+        <div class="slide">
+            <h2>📊 Kazanç Durumları (3 Durum)</h2>
+
+            <div style="margin-top: 40px;">
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #28a745;"></div>
+                    <div class="timeline-content">
+                        <h3>✅ PAID (Ödendi)</h3>
+                        <p>Para cüzdana aktarılmış, çekebilirsin</p>
+                        <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Şart: KYC Onaylı + $100 aylık hacim</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #ffc107;"></div>
+                    <div class="timeline-content">
+                        <h3>⏳ HELD (Beklemede)</h3>
+                        <p>Kazanıldı, ama çekilemiyor</p>
+                        <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Sebep: $100 hacim yapılmamış, KYC onaylanmamış</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #dc3545;"></div>
+                    <div class="timeline-content">
+                        <h3>🔥 BURNED (Yakıldı)</h3>
+                        <p>Sistem tarafından iptal (Hiç kurtarılamaz)</p>
+                        <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Sebep: Fraud, Sahtekarlık, Sistem hatası</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 40px; background: #fff3cd; border-left-color: #ffc107;">
+                <p><strong>💡 Tavsiye:</strong> Aylık $100 hacim yaparak ve KYC onayını tamamlayarak HELD'den kurtul!</p>
+            </div>
+        </div>
+
+        <!-- Slide 19: KYC Gereksinimleri -->
+        <div class="slide">
+            <h2>🛡️ KYC Gereksinimleri</h2>
+            <p style="margin-bottom: 30px;">KYC = "Know Your Customer" - Para çekebilmek için gerekli</p>
+
+            <ul class="feature-list">
+                <li>✓ Ad-Soyadı doğrulaması (Kimlik belgesi)</li>
+                <li>✓ Pasaport veya Ehliyet</li>
+                <li>✓ Banka hesabı doğrulaması</li>
+                <li>✓ Telefon doğrulaması (SMS)</li>
+                <li>✓ Adres doğrulaması (Ikamet belgesi)</li>
+            </ul>
+
+            <div class="stat-box" style="margin-top: 40px; background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%); border-left-color: #28a745;">
+                <p><strong>✓ KYC Onaylandı</strong></p>
+                <p style="margin-top: 10px;">HELD kazançlarının tamamı PAID'e dönüşür!</p>
+            </div>
+
+            <div class="stat-box" style="background: #ffebee; border-left-color: #dc3545; margin-top: 20px;">
+                <p><strong>✗ KYC Başarısız</strong></p>
+                <p style="margin-top: 10px;">Kazançların HELD'de kalır, çekilemez</p>
+            </div>
+        </div>
+
+        <!-- Slide 20: Önemli Uyarılar -->
+        <div class="slide">
+            <h2>⚠️ ÖNEMLİ UYARILAR</h2>
+
+            <div class="stat-box" style="background: #fff3cd; border-left-color: #ffc107; margin: 20px 0;">
+                <h3 style="color: #856404; margin-top: 0;">1️⃣ Aylık $100 Hacim Şartı</h3>
+                <p>Bunu yapmazsan kariyer bonusu ve havuz geliri HELD kalır</p>
+            </div>
+
+            <div class="stat-box" style="background: #f8d7da; border-left-color: #dc3545; margin: 20px 0;">
+                <h3 style="color: #721c24; margin-top: 0;">2️⃣ Yasak İşlemler</h3>
+                <p style="margin: 10px 0;">• Bot/Sahtekarlık referansı (BURNED)</p>
+                <p style="margin: 10px 0;">• Bir IP'den 5+ hesap (Flag)</p>
+                <p style="margin: 10px 0;">• Promosyon kodlarını kötüye kullanmak</p>
+                <p style="margin: 10px 0;">• Iade dolandırıcılığı</p>
+            </div>
+
+            <div class="stat-box" style="background: #d1ecf1; border-left-color: #17a2b8; margin: 20px 0;">
+                <h3 style="color: #0c5460; margin-top: 0;">3️⃣ 3 Ay Sürekli Pasif Üye</h3>
+                <p>3 ay üst üste $100 yapmazsan hesabın "Inactive" olabilir</p>
+            </div>
+
+            <div class="stat-box" style="background: #e7e5f1; border-left-color: #667eea; margin: 20px 0;">
+                <h3 style="color: #3f4471; margin-top: 0;">4️⃣ Sponsor İlişkisi</h3>
+                <p>Sponsor ilişkisi ömür boyu (hiçbir şekilde kırılamaz)</p>
+            </div>
+        </div>
+
+        <!-- Slide 21: Monoline MLM Yapısı & Genel Komisyon Tablosu -->
+        <div class="slide">
+            <h2>🌳 Monoline MLM Yapısı & Genel Dağılım</h2>
+            <p style="margin-bottom: 30px;">Tek hat (Monoline) ağ yapısı = Herkes eşit kurallara uyar</p>
+
+            <div class="code-box" style="margin: 30px 0;">
+Monoline MLM (Adil & Şeffaf):
+
+           Siz
+           ├─ Referans 1 (Sponsor) - 25% kazanır
+           │  ├─ Referans 1.1 (Level 2) - 5% kazanır
+           │  │  ├─ Referans 1.1.1 (Level 3) - 3% kazanır
+           │  │  └─ ... (7 seviye kadar)
+           │  └─ Referans 1.2 (Monoline queue)
+           └─ Referans 2 (Monoline queue)
+              └─ Referans 2.1 (Sırada)
+            </div>
+
+            <h3>Monoline Avantajları</h3>
+            <ul class="feature-list">
+                <li>Hiç el yapması gerekmez (Sağ-Sol karışıklığı yok)</li>
+                <li>Derinlik sınırı sonsuza atılabilir (kariyer artarken)</li>
+                <li>Tüm üyeler eşit, şeffaf sistem</li>
+                <li>Otomatik Havuz dağıtımı (Pasif gelir)</li>
+            </ul>
+
+            <h3 style="margin-top: 30px;">Her $100 Satışında Toplam Dağılım</h3>
+            <div class="code-box" style="background: #f0f0f0;">
+$100 Satış
+├─ $25 → Sponsor Bonusu (Direkt)
+├─ $15 → Derinlik Havuzu (7 seviye unilevel)
+├─ $10 → Monoline Havuzu (Tüm aktif üyeler)
+└─ $50 → Sistem Fonu (Operasyon & gelişim)
+            </div>
+        </div>
+
+        <!-- Slide 22: Sık Sorulan Sorular -->
+        <div class="slide">
+            <h2>❓ Sık Sorulan Sorular</h2>
+
+            <div class="timeline-item" style="margin-bottom: 20px;">
+                <div class="timeline-dot" style="background: #667eea;"></div>
+                <div class="timeline-content" style="margin: 0;">
+                    <h3 style="margin: 0 0 10px 0;">S: Başlamak için ne kadar para gerekir?</h3>
+                    <p style="margin: 0;">C: Min $100 ürün (5 birim) veya $200 aktivasyon ücreti</p>
+                </div>
+            </div>
+
+            <div class="timeline-item" style="margin-bottom: 20px;">
+                <div class="timeline-dot" style="background: #17a2b8;"></div>
+                <div class="timeline-content" style="margin: 0;">
+                    <h3 style="margin: 0 0 10px 0;">S: İlk referansı kaç günde bulmam gerekir?</h3>
+                    <p style="margin: 0;">C: Hedef 30 gün içinde, ama hiçbir zaman geç değildir</p>
+                </div>
+            </div>
+
+            <div class="timeline-item" style="margin-bottom: 20px;">
+                <div class="timeline-dot" style="background: #28a745;"></div>
+                <div class="timeline-content" style="margin: 0;">
+                    <h3 style="margin: 0 0 10px 0;">S: Aylık $100 yapmazsam ne olur?</h3>
+                    <p style="margin: 0;">C: Kariyer & havuz bonusu HELD kalır, ama sponsor bonusu alırsın</p>
+                </div>
+            </div>
+
+            <div class="timeline-item" style="margin-bottom: 20px;">
+                <div class="timeline-dot" style="background: #ffc107;"></div>
+                <div class="timeline-content" style="margin: 0;">
+                    <h3 style="margin: 0 0 10px 0;">S: Mülhime'ye kaç gün içinde çıkabilirim?</h3>
+                    <p style="margin: 0;">C: Hızlı çalışırsan 30-45 gün, standart: 45-60 gün</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background: #dc3545;"></div>
+                <div class="timeline-content" style="margin: 0;">
+                    <h3 style="margin: 0 0 10px 0;">S: Para çekmek ne kadar sürer?</h3>
+                    <p style="margin: 0;">C: KYC onaylandıktan sonra 24-48 saat</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Sonuç ve Özet -->
+        <div class="slide">
+            <h2>✨ SONUÇ</h2>
+            <p style="font-size: 1.3em; margin: 40px 0; text-align: center;">
+                <strong>AKN GROUP, maddi başarı ve ruhani gelişimin<br>birleştirildiği çok katmanlı bir sistem sunar.</strong>
+            </p>
+
+            <h3 style="margin-top: 50px;">Yeni Üyenin 7 Adımlı Yolculuğu</h3>
+            <div class="career-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>1. Kayıt & Aktivasyon</strong> - $100 ürün yada $200 ücreti</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>2. İlk Kazanç</strong> - Sponsor bonusu + havuz geliri</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>3. Network Ağı</strong> - Referans toplayarak ekip oluşturma</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>4. Kariyer Atlaması</strong> - Mülhime, Mutmainne... seviyeleri</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>5. Pasif Gelir</strong> - Ağ otomatik satış yaparken kazanma</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>6. Ruhani Gelişim</strong> - Manevi, Zahiri, Batini paneller</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: #667eea;"></div>
+                    <div class="timeline-content">
+                        <p><strong>7. İnsan-ı Kamil</strong> - Zirveye ulaşma (Nihai hedef)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer" style="margin-top: 60px;">
+                <p style="font-size: 1.2em;">Bu rapor ve sunum detaylı inceleme sonucu hazırlanmıştır.</p>
+                <p>© 2024 AKN GROUP - Tüm Hakları Saklıdır</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button onclick="previousSlide()" id="prevBtn">← Önceki</button>
+            <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">23</span></span>
+            <button onclick="nextSlide()" id="nextBtn">Sonraki →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            
+            if (n > totalSlides) {
+                currentSlide = totalSlides;
+            }
+            if (n < 1) {
+                currentSlide = 1;
+            }
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = currentSlide;
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+
+        function previousSlide() {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') previousSlide();
+        });
+
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>

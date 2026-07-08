@@ -1,0 +1,39 @@
+{
+  "users": [],
+  "products": [],
+  "paymentRequests": [],
+  "clonePages": [],
+  "walletTransactions": [],
+  "productPurchases": [],
+  "adminLogs": [],
+  "memberLogs": [],
+  "memberActivities": [],
+  "announcements": [],
+  "realTimeTransactions": [],
+  "monolineCommissions": [],
+  "passiveIncomePool": {
+    "totalAmount": 0,
+    "lastUpdated": "2026-07-07T21:01:17.194Z"
+  },
+  "companyFund": {
+    "totalAmount": 0,
+    "lastUpdated": "2026-07-07T21:01:17.194Z",
+    "transactions": []
+  },
+  "passiveIncomeDistributions": [],
+  "transactions": [],
+  "settings": {
+    "systemSettings": {
+      "maxCapacity": 1000000,
+      "autoPlacement": true,
+      "registrationEnabled": true,
+      "maintenanceMode": false
+    },
+    "commissionSettings": {
+      "sponsorBonusRate": 10,
+      "careerBonusRate": 25,
+      "passiveIncomeRate": 5,
+      "systemFundRate": 60
+    }
+  }
+}
